@@ -1,16 +1,13 @@
 package networking;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
 public class Multiplayer {
 	
-	public static void main(String[] args) {
-		new Multiplayer("Username");
-	}
-	
-	public Multiplayer(String username) {
+	public Multiplayer(User user) {
 		/*JFrame f = new JFrame("Chess");
 		
 		Container list = new Container();
@@ -24,11 +21,11 @@ public class Multiplayer {
 		UserList.setLayout(new BoxLayout(UserList, BoxLayout.Y_AXIS));
 		JScrollPane pane = new JScrollPane(UserList);*/
 		
-		ArrayList players = new ArrayList();
-		for(int i=0;i<500;i++){
-			players.add("Opponent "+(i+1));
+		ArrayList<String> players = new ArrayList<String>();
+		for(User u : User.ReadUsers("res\\User.csv")){
+			players.add(u.Username);
 		}
-		JOptionPane.showInputDialog(null, "Select Opponent", "Challenge", JOptionPane.QUESTION_MESSAGE, null, players.toArray(), null);
+		JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players.toArray(), null);
 	}
 	
 }

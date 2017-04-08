@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Timestamp;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,7 +19,7 @@ import javax.swing.SpringLayout;
 public class Account extends JFrame implements ActionListener {
 	
 	JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
-	JButton buttons[] = {};
+	JButton buttons[] = {new JButton("Login"),new JButton("Register")};
 	
 	public static void main(String args[]){
 		JFrame frame = new Account();
@@ -55,7 +56,7 @@ public class Account extends JFrame implements ActionListener {
 		UserPass.add(Password);
 		layout.putConstraint(SpringLayout.WEST, Password, 10, SpringLayout.EAST, PWLabel);
 		layout.putConstraint(SpringLayout.NORTH, Password, 55, SpringLayout.NORTH, Username);
-		JButton SignIn = new JButton("Sign In");
+		JButton SignIn = buttons[0];
 		UserPass.add(SignIn);
 		layout.putConstraint(SpringLayout.WEST, SignIn, 150, SpringLayout.WEST, UserPass);
 		layout.putConstraint(SpringLayout.NORTH, SignIn, 45, SpringLayout.NORTH, Password);
@@ -82,7 +83,7 @@ public class Account extends JFrame implements ActionListener {
 		Register.add(Password2);
 		layout.putConstraint(SpringLayout.WEST, Password2, 10, SpringLayout.EAST, PWLabel2);
 		layout.putConstraint(SpringLayout.NORTH, Password2, 55, SpringLayout.NORTH, Username2);
-		JButton SignUp = new JButton("Register");
+		JButton SignUp = buttons[1];
 		Register.add(SignUp);
 		layout.putConstraint(SpringLayout.WEST, SignUp, 150, SpringLayout.WEST, Register);
 		layout.putConstraint(SpringLayout.NORTH, SignUp, 45, SpringLayout.NORTH, Password2);
@@ -91,13 +92,27 @@ public class Account extends JFrame implements ActionListener {
 		
 		add(pane,BorderLayout.CENTER);
 		setSize(400,250);
+		for(JButton button : buttons) {
+			button.addActionListener(this);
+		}
 	}
 	
 	public void actionPerformed(ActionEvent e) {
-		if(((JButton)e.getSource()).getText().equals("Register")) {
-			
-		}else if(((JButton)e.getSource()).getText().equals("Login")) {
-			
+		if(((JButton)e.getSource())==buttons[1]) {
+			User user = new User(textFields[2].getText(),PasswordHash.Hash(textFields[3].getText()), new Timestamp(System.currentTimeMillis()));
+			User.AddUser(user);
+		}else if(((JButton)e.getSource())==buttons[0]) {
+			User user = User.GetUser(textFields[0].getText());
+			if(user!=null) {
+				if(PasswordHash.Compare(user.PasswordHash,textFields[1].getText())) {
+					login(user);
+				}
+			}
 		}
+	}
+	
+	public void login(User user) {
+		setVisible(false);
+		new Multiplayer(user);
 	}
 }

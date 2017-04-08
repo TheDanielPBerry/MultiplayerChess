@@ -9,12 +9,18 @@ public class PasswordHash {
 		System.out.println(generateSalt());
 	}
 	
-	public static String hash(String password) {
+	
+	public static String Hash(String password) {
 		String salt = generateSalt();
 		String hashedPassword = generateHash(salt + password);
 		return hashedPassword + ":" + salt;
 	}
 	
+	
+	public static boolean Compare(String passwordHash, String password) {
+		String data[] = passwordHash.split(":");
+		return (generateHash(data[1] + password).equals(data[0]));
+	}
 	
 	
 	public static String generateSalt() {
@@ -45,9 +51,7 @@ public class PasswordHash {
 				hash.append(digits[b & 0x0f]);
 			}
 		} catch (NoSuchAlgorithmException e) {
-			// handle error here.
 		}
-		
 		return hash.toString();
 	}
 	
