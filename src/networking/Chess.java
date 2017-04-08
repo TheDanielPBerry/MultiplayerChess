@@ -2,6 +2,7 @@ package networking;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -69,10 +71,23 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		grave.setSize(300,(int)(DIM.height/1.5));
 		grave.setLocation((int) (frame.getX()+10+(DIM.height/1.5)),frame.getY());
 		grave.setVisible(true);
+		grave.setLayout(new GridLayout(2,1));
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top,BoxLayout.Y_AXIS));
+		JLabel WGYLabel = new JLabel("White Graveyard");
+		WGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+		top.add(WGYLabel);
 		WGY = new JPanel(new GridLayout(4,4));
-		add(WGY, BorderLayout.NORTH);
+		top.add(WGY);
+		JPanel bottom = new JPanel();
+		bottom.setLayout(new BoxLayout(bottom,BoxLayout.Y_AXIS));
+		JLabel BGYLabel = new JLabel("Black Graveyard");
+		BGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+		bottom.add(BGYLabel);
 		BGY = new JPanel(new GridLayout(4,4));
-		add(BGY, BorderLayout.CENTER);
+		bottom.add(BGY);
+		grave.add(top);
+		grave.add(bottom);
 	}
 	
 	public void update(Graphics g) {
@@ -133,11 +148,19 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 					board[selectedCell.x][selectedCell.y] = new Cell(' ');
 					if(board[x][y].id!=' '){
 						if(board[x][y].whitePiece){
+							JLabel tempLabel = new JLabel(""+board[x][y].id);
+							tempLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+							WGY.add(tempLabel);
 							whiteGY.add(board[x][y].id);
 						}
 						else{
+							JLabel tempLabel = new JLabel(""+board[x][y].id);
+							tempLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+							BGY.add(tempLabel);
 							blackGY.add(+board[x][y].id);
 						}
+						grave.revalidate();
+						grave.repaint();
 					}
 					board[x][y] = temp;
 					selectedCell = new Point(8,8);
