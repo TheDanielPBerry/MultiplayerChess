@@ -112,6 +112,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 					board[selectedCell.x][selectedCell.y] = new Cell(' ');
 					board[x][y] = temp;
 					selectedCell = new Point(8,8);
+					whitePeopleFirst = !whitePeopleFirst;
 				}
 			}
 		}
@@ -121,11 +122,13 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	public void mousePressed(MouseEvent e) {
 		if(e.getButton()==1) {
 			byte x = (byte) (((e.getX()+0.0)/frame.getWidth())*8), y = (byte) (((e.getY()+0.0)/frame.getWidth())*8);
-			if(selectedCell.x==8 && board[x][y].whitePiece==whitePeopleFirst) {
-				selectedCell = new Point(x,y);
-				availableMoves = board[x][y].possibleMoves(selectedCell, board);
+			if(selectedCell.x==8) {
+				if(board[x][y].whitePiece==whitePeopleFirst) {
+					selectedCell = new Point(x,y);
+					availableMoves = board[x][y].possibleMoves(selectedCell, board);
+				}
 			}
-			else movePiece(x,y);
+			else if(board[selectedCell.x][selectedCell.y].whitePiece==whitePeopleFirst) movePiece(x,y);
 		}
 	}
 	public void mouseReleased(MouseEvent e) {
