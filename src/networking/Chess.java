@@ -1,17 +1,21 @@
 package networking;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class Chess extends JPanel implements Runnable, MouseListener {
@@ -20,6 +24,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	private static final long serialVersionUID = -8316910605042033620L;
 	private JFrame frame;
+	private JFrame grave;
+	private JPanel WGY;
+	private JPanel BGY;
 	private BufferedImage buffer;
 	private Graphics g3;
 	private final Dimension DIM;
@@ -29,6 +36,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private boolean availableMoves[][] = new boolean[8][8];
 	private Point selectedCell = new Point(8,8);
 	private boolean whitePeopleFirst = true;
+	private ArrayList whiteGY = new ArrayList();
+	private ArrayList blackGY = new ArrayList();
 	
 	public static void main(String[] args) {
 		new Chess(args).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -37,7 +46,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	public Chess(String[] args) {
 		frame = new JFrame("Chess");
 		DIM = Toolkit.getDefaultToolkit().getScreenSize();
-		frame.setSize((int)(DIM.height/1.1),(int)(DIM.height/1.1)+10);
+		frame.setSize((int)(DIM.height/1.5),(int)(DIM.height/1.5));
 		frame.add(this);
 		addMouseListener(this);
 		//frame.setUndecorated(true);
@@ -47,11 +56,23 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		frame.setVisible(true);
 		frame.setFocusable(true);
 		requestFocus();
-		buffer = new BufferedImage((int)(DIM.height/1.1),(int)(DIM.height/1.1), BufferedImage.TYPE_INT_ARGB);
+		buffer = new BufferedImage((int)(DIM.height/1.5),(int)(DIM.height/1.5), BufferedImage.TYPE_INT_ARGB);
 		g3 = buffer.getGraphics();
 		resetBoard();
+		Graveyard();
 		Thread t = new Thread(this);
 		t.start();
+	}
+	
+	public void Graveyard(){
+		grave = new JFrame("Graveyards");
+		grave.setSize(300,(int)(DIM.height/1.5));
+		grave.setLocation((int) (frame.getX()+10+(DIM.height/1.5)),frame.getY());
+		grave.setVisible(true);
+		WGY = new JPanel(new GridLayout(4,4));
+		add(WGY, BorderLayout.NORTH);
+		BGY = new JPanel(new GridLayout(4,4));
+		add(BGY, BorderLayout.CENTER);
 	}
 	
 	public void update(Graphics g) {
@@ -110,6 +131,14 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 			if(temp.id!=' ') {
 				if((temp.whitePiece!=board[x][y].whitePiece) || board[x][y].id==' ') {
 					board[selectedCell.x][selectedCell.y] = new Cell(' ');
+					if(board[x][y].id!=' '){
+						if(board[x][y].whitePiece){
+							whiteGY.add(board[x][y].id);
+						}
+						else{
+							blackGY.add(+board[x][y].id);
+						}
+					}
 					board[x][y] = temp;
 					selectedCell = new Point(8,8);
 					whitePeopleFirst = !whitePeopleFirst;
