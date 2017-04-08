@@ -54,6 +54,35 @@ public class Account extends JFrame{
 			layout.putConstraint(SpringLayout.WEST, SignIn, 150, SpringLayout.WEST, UserPass);
 			layout.putConstraint(SpringLayout.NORTH, SignIn, 45, SpringLayout.NORTH, Password);
 			pane.add("Login",UserPass);
+			
+			Container Register = new Container();
+			Register.setLayout(layout);
+			
+			JLabel UserLabel2 = new JLabel("Username: ");
+			UserLabel2.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+			Register.add(UserLabel2);
+			layout.putConstraint(SpringLayout.WEST, UserLabel2, 60, SpringLayout.WEST, Register);
+			layout.putConstraint(SpringLayout.NORTH, UserLabel2, 35, SpringLayout.NORTH, Register);
+			JTextField Username2 = new JTextField(15);
+			Register.add(Username2);
+			layout.putConstraint(SpringLayout.WEST, Username2, 10, SpringLayout.EAST, UserLabel2);
+			layout.putConstraint(SpringLayout.NORTH, Username2, 40, SpringLayout.NORTH, Register);
+			JLabel PWLabel2 = new JLabel("Password: ");
+			PWLabel2.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
+			Register.add(PWLabel2);
+			layout.putConstraint(SpringLayout.WEST, PWLabel2, 60, SpringLayout.WEST, Register);
+			layout.putConstraint(SpringLayout.NORTH, PWLabel2, 55, SpringLayout.NORTH, UserLabel2);
+			JPasswordField Password2 = new JPasswordField(15);
+			Register.add(Password2);
+			layout.putConstraint(SpringLayout.WEST, Password2, 10, SpringLayout.EAST, PWLabel2);
+			layout.putConstraint(SpringLayout.NORTH, Password2, 55, SpringLayout.NORTH, Username2);
+			JButton SignUp = new JButton("Register");
+			Register.add(SignUp);
+			layout.putConstraint(SpringLayout.WEST, SignUp, 150, SpringLayout.WEST, Register);
+			layout.putConstraint(SpringLayout.NORTH, SignUp, 45, SpringLayout.NORTH, Password2);
+			pane.add("Register",Register);
+			
+			
 			add(pane,BorderLayout.CENTER);
 			setSize(400,250);
 		}
