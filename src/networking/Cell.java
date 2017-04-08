@@ -119,6 +119,73 @@ public class Cell {
 				d++;
 			}
 			break;
+		case 0x2657:
+		case 0x265D:
+			byte dx = (byte) (x+1);
+			byte dy = (byte) (y+1);
+			while(dx<=7 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				if(grid[dx][dy].id != ' ') {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=7;
+				}
+				dx++;
+				dy++;
+			}
+			dx = (byte) (x+1);
+			dy = (byte) (y-1);
+			while(dx<=7 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				if(grid[dx][dy].id != ' ') {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=0;
+				}
+				dx++;
+				dy--;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y+1);
+			while(dx>=0 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				if(grid[dx][dy].id != ' ') {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=7;
+				}
+				dx--;
+				dy++;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y-1);
+			while(dx>=0 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				if(grid[dx][dy].id != ' ') {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=0;
+				}
+				dx--;
+				dy--;
+			}
+			break;
 		}
 		return moves;
 	}
