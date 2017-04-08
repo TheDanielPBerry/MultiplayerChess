@@ -41,9 +41,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		frame = new JFrame("Chess");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		DIM = Toolkit.getDefaultToolkit().getScreenSize();
-		frame.setSize((int)(DIM.height/1.1),(int)(DIM.height/1.1));
+		frame.setSize((int)(DIM.height/1.1),(int)(DIM.height/1.1)+10);
 		frame.add(this);
-		frame.addMouseListener(this);
+		addMouseListener(this);
 		//frame.setUndecorated(true);
 		//frame.setAlwaysOnTop(true);
 		frame.setLocationRelativeTo(null);
@@ -67,28 +67,23 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	}
 	
 	private void make() {
-		g3.setFont(new Font(Font.MONOSPACED, Font.BOLD, 60));
-		g3.setColor(Color.MAGENTA);
+		g3.setFont(new Font(Font.MONOSPACED, Font.BOLD, getHeight()/14));
+		g3.setColor(Color.ORANGE);
 		g3.fillRect(0, 0, getWidth(), getHeight());
 		for(byte y=0; y<8; y++) {
 			for(byte x=0; x<8; x++) {
-				boolean parityDraw = false;
-				if(availableMoves[x][y]) {
-					g3.setColor(Color.YELLOW);
-					parityDraw = true;
-				}else if(x==selectedCell.x && y==selectedCell.y) {
-					g3.setColor(Color.YELLOW);
-					parityDraw = true;
+				if(availableMoves[x][y] || x==selectedCell.x && y==selectedCell.y) {
+					g3.setColor(Color.CYAN);
+					g3.fillRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
+					g3.setColor(Color.BLUE);
+					g3.drawRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
 				}else if(x%2==0 && y%2==0 || x%2==1 && y%2==1) {
 					g3.setColor(new Color(163,64,29));
-					parityDraw = true;
-				}
-				if(parityDraw) {
 					g3.fillRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
 				}
 				if(board[x][y].whitePiece) g3.setColor(Color.WHITE);
 				else g3.setColor(Color.BLACK);
-				g3.drawString(""+board[x][y].id,(x*(getWidth()/8))+30,(y*(getWidth()/8))+80);
+				g3.drawString(""+board[x][y].id,(int)((x*(getWidth()/8))+(getWidth()/32)),(int)((y*(getHeight()/7.8))+(getHeight()/10)));
 			}
 		}
 		repaint();
@@ -165,14 +160,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		for(byte y=0; y<8; y++) {
 			for(byte x=0; x<8; x++) {
 				board[x][y] = new Cell((char) pieces[y][x]);
-				try {
-					PrintStream out = new PrintStream(System.out, true, "UTF-8");
-					out.print((char)pieces[y][x]);
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
 			}
-			System.out.println();
 		}
 		
 	}
