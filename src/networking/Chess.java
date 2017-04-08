@@ -1,9 +1,5 @@
 package networking;
 
-//package chess;
-
-import java.io.PrintStream;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -32,14 +28,14 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private Cell board[][];
 	private boolean availableMoves[][] = new boolean[8][8];
 	private Point selectedCell = new Point(8,8);
+	private boolean whitePeopleFirst = true;
 	
 	public static void main(String[] args) {
-		new Chess(args);
+		new Chess(args).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public Chess(String[] args) {
 		frame = new JFrame("Chess");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		DIM = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setSize((int)(DIM.height/1.1),(int)(DIM.height/1.1)+10);
 		frame.add(this);
@@ -125,7 +121,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	public void mousePressed(MouseEvent e) {
 		if(e.getButton()==1) {
 			byte x = (byte) (((e.getX()+0.0)/frame.getWidth())*8), y = (byte) (((e.getY()+0.0)/frame.getWidth())*8);
-			if(selectedCell.x==8) {
+			if(selectedCell.x==8 && board[x][y].whitePiece==whitePeopleFirst) {
 				selectedCell = new Point(x,y);
 				availableMoves = board[x][y].possibleMoves(selectedCell, board);
 			}
