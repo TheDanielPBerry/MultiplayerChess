@@ -5,6 +5,10 @@ import java.util.Random;
 
 public class PasswordHash {
 	
+	public static void main(String[] args) {
+		System.out.println(generateSalt());
+	}
+	
 	public static String hash(String password) {
 		String salt = generateSalt();
 		String hashedPassword = generateHash(salt + password);
@@ -14,15 +18,20 @@ public class PasswordHash {
 	
 	
 	public static String generateSalt() {
-		final int saltLength = 100;
+		final int saltLength = 50;
 		Random r = new Random();
 		String salt = "";
-		for(byte i=0; i<saltLength; i++) {
-			salt += (char)r.nextInt();
+		for(short i=0; i<saltLength; i++) {
+			byte id = (byte)Math.abs(r.nextInt()%36);
+			id+=48;
+			if(id>57) {
+				id+=7;
+			}
+			salt += (char)id;
 		}
 		return salt;
 	}
-
+	
 	public static String generateHash(String input) {
 		StringBuilder hash = new StringBuilder();
 		try {
@@ -41,5 +50,5 @@ public class PasswordHash {
 		
 		return hash.toString();
 	}
-
+	
 }
