@@ -107,7 +107,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	public void movePiece(byte x, byte y) {
 		Cell temp = board[selectedCell.x][selectedCell.y];
-		if(x==selectedCell.x && y==selectedCell.y) {
+		if((x==selectedCell.x && y==selectedCell.y) || !availableMoves[x][y]) {
 			selectedCell = new Point(8,8);
 		} else {
 			temp.firstMove=false;
@@ -155,7 +155,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				{0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20},
 				{0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20},
 				{0x2659,0x2659,0x2659,0x2659,0x2659,0x2659,0x2659,0x2659},
-				{0x2656,0x2658,0x2657,0x2655,0x2654,0x2657,0x2658,0x2656}
+				{0x2656,0x2658,0x2657,0x2654,0x2655,0x2657,0x2658,0x2656}
 		};
 		for(byte y=0; y<8; y++) {
 			for(byte x=0; x<8; x++) {
