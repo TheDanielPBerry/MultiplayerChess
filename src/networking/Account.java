@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -18,11 +19,16 @@ import javax.swing.SpringLayout;
 
 public class Account extends JFrame implements ActionListener {
 	
-	JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
-	JButton buttons[] = {new JButton("Login"),new JButton("Register")};
+	
+	private static final long serialVersionUID = 5744889896837508130L;
+	private JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
+	private JButton buttons[] = {new JButton("Login"),new JButton("Register")};
+	public static String Ip;
 	
 	public static void main(String args[]){
-		JFrame frame = new Account();
+	    Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
+	    
+		new Account();
 	}
 	
 	public Account(){
@@ -99,14 +105,18 @@ public class Account extends JFrame implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		if(((JButton)e.getSource())==buttons[1]) {
-			User user = new User(textFields[2].getText(),PasswordHash.Hash(textFields[3].getText()), new Timestamp(System.currentTimeMillis()));
-			User.AddUser(user);
+			String response = Server.WaitMessage("REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText());
+			if(response.equals("OK")) {
+				JOptionPane.showMessageDialog(null, "Account Created Successfully");
+			} else {
+				JOptionPane.showMessageDialog(null, response);
+			}
 		}else if(((JButton)e.getSource())==buttons[0]) {
-			User user = User.GetUser(textFields[0].getText());
-			if(user!=null) {
-				if(PasswordHash.Compare(user.PasswordHash,textFields[1].getText())) {
-					login(user);
-				}
+			String response = Server.WaitMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText());
+			if(response!= null && response.equals("OK")) {
+				login(new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis())));
+			} else {
+				JOptionPane.showMessageDialog(null, response);
 			}
 		}
 	}

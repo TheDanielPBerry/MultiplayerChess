@@ -1,6 +1,5 @@
 package networking;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -25,7 +24,20 @@ public class Multiplayer {
 		for(User u : User.ReadUsers("res\\User.csv")){
 			players.add(u.Username);
 		}
-		JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players.toArray(), null);
+		String opponent = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, (String[])players.toArray(), null);
+		if(opponent==null) {
+			logout();
+		} else {
+			challenge(opponent);
+		}
 	}
+	
+	public void logout() {
+		
+	}
+	public void challenge(String opponent) {
+		
+	}
+	
 	
 }
