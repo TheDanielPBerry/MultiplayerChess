@@ -24,9 +24,6 @@ public class Cell {
 
 
 
-
-
-
 	public boolean[][] possibleMoves(Point selectedCell, Cell[][] grid) {
 		int x = selectedCell.x;
 		int y = selectedCell.y;
@@ -65,48 +62,59 @@ public class Cell {
 			}
 			break;
 		case 0x265c:
-		case 0x2654:
-			byte d = (byte) x;
+		case 0x2656:
+			byte d = (byte) (x+1);
 			while(d<=7) {
 				if(grid[d][y].id == ' ') {
 					moves[d][y] = true;
 				}
-				if(grid[d][y].id != ' ' && grid[d][y].whitePiece!=whitePiece) {
-					moves[d][y] = true;
-					d=8;
+				if(grid[d][y].id != ' ') {
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=7;
 				}
 				d++;
 			}
-			d = (byte) x;
+			
+			d = (byte) (x-1);
 			while(d>=0) {
 				if(grid[d][y].id == ' ') {
 					moves[d][y] = true;
 				}
-				if(grid[d][y].id != ' ' && grid[d][y].whitePiece!=whitePiece) {
-					moves[d][y] = true;
-					d=8;
+				if(grid[d][y].id != ' ') { 
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=0;
 				}
 				d--;
 			}
-			d = (byte) y;
+			
+			d = (byte) (y-1);
 			while(d>=0) {
 				if(grid[x][d].id == ' ') {
 					moves[x][d] = true;
 				}
-				if(grid[x][d].id != ' ' && grid[x][d].whitePiece!=whitePiece) {
-					moves[x][d] = true;
-					d=8;
+				if(grid[x][d].id != ' ') {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=0;
 				}
 				d--;
 			}
-			d = (byte) y;
+			
+			d = (byte) (y+1);
 			while(d<=7) {
 				if(grid[x][d].id == ' ') {
 					moves[x][d] = true;
 				}
-				if(grid[x][d].id != ' ' && grid[x][d].whitePiece!=whitePiece) {
-					moves[x][d] = true;
-					d=8;
+				if(grid[x][d].id != ' ') {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=7;
 				}
 				d++;
 			}
