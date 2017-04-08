@@ -24,9 +24,6 @@ public class Cell {
 
 
 
-
-
-
 	public boolean[][] possibleMoves(Point selectedCell, Cell[][] grid) {
 		int x = selectedCell.x;
 		int y = selectedCell.y;
@@ -65,50 +62,286 @@ public class Cell {
 			}
 			break;
 		case 0x265c:
+		case 0x2656:
+			byte d = (byte) (x+1);
+			while(d<=7) {
+				if(grid[d][y].id == ' ') {
+					moves[d][y] = true;
+				}
+				else {
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=7;
+				}
+				d++;
+			}
+			
+			d = (byte) (x-1);
+			while(d>=0) {
+				if(grid[d][y].id == ' ') {
+					moves[d][y] = true;
+				}
+				else { 
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=0;
+				}
+				d--;
+			}
+			
+			d = (byte) (y-1);
+			while(d>=0) {
+				if(grid[x][d].id == ' ') {
+					moves[x][d] = true;
+				}
+				else {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=0;
+				}
+				d--;
+			}
+			
+			d = (byte) (y+1);
+			while(d<=7) {
+				if(grid[x][d].id == ' ') {
+					moves[x][d] = true;
+				}
+				else {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=7;
+				}
+				d++;
+			}
+			break;
+		case 0x2657:
+		case 0x265D:
+			byte dx = (byte) (x+1);
+			byte dy = (byte) (y+1);
+			while(dx<=7 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=7;
+				}
+				dx++;
+				dy++;
+			}
+			dx = (byte) (x+1);
+			dy = (byte) (y-1);
+			while(dx<=7 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=0;
+				}
+				dx++;
+				dy--;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y+1);
+			while(dx>=0 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=7;
+				}
+				dx--;
+				dy++;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y-1);
+			while(dx>=0 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=0;
+				}
+				dx--;
+				dy--;
+			}
+			break;
+		case 0x2658:
+		case 0x265E:
+			Point offsets[] = {new Point(2,1),new Point(1,2),new Point(-2,1),new Point(2,-1),
+					new Point(-1,2),new Point(-1,-2),new Point(1,-2),new Point(-2,-1)};
+			for(Point p : offsets) {
+				if(x+p.x<8 && x+p.x>-1 && y+p.y<8 && y+p.y>-1) {
+					if(grid[p.x+x][p.y+y].id == ' ') {
+						moves[p.x+x][p.y+y] = true;
+					}
+					else {
+						if(grid[p.x+x][p.y+y].whitePiece!=whitePiece) {
+							moves[p.x+x][p.y+y] = true;
+						}
+					}
+				}
+			}
+			break;
+		case 0x265A:
 		case 0x2654:
-			byte d = (byte) x;
+			offsets = new Point[] {new Point(1,1),new Point(1,-1),new Point(-1,0),new Point(0,1),
+					new Point(0,-1),new Point(-1,-1),new Point(-1,1),new Point(1,0)};
+			for(Point p : offsets) {
+				if(x+p.x<8 && x+p.x>-1 && y+p.y<8 && y+p.y>-1) {
+					if(grid[p.x+x][p.y+y].id == ' ') {
+						moves[p.x+x][p.y+y] = true;
+					}
+					else {
+						if(grid[p.x+x][p.y+y].whitePiece!=whitePiece) {
+							moves[p.x+x][p.y+y] = true;
+						}
+					}
+				}
+			}
+			break;
+			
+
+		case 0x265B:
+		case 0x2655:
+			d = (byte) (x+1);
 			while(d<=7) {
 				if(grid[d][y].id == ' ') {
 					moves[d][y] = true;
 				}
-				if(grid[d][y].id != ' ' && grid[d][y].whitePiece!=whitePiece) {
-					moves[d][y] = true;
-					d=8;
+				else {
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=7;
 				}
 				d++;
 			}
-			d = (byte) x;
+			
+			d = (byte) (x-1);
 			while(d>=0) {
 				if(grid[d][y].id == ' ') {
 					moves[d][y] = true;
 				}
-				if(grid[d][y].id != ' ' && grid[d][y].whitePiece!=whitePiece) {
-					moves[d][y] = true;
-					d=8;
+				else { 
+					if(grid[d][y].whitePiece!=whitePiece) {
+						moves[d][y] = true;
+					}
+					d=0;
 				}
 				d--;
 			}
-			d = (byte) y;
+			
+			d = (byte) (y-1);
 			while(d>=0) {
 				if(grid[x][d].id == ' ') {
 					moves[x][d] = true;
 				}
-				if(grid[x][d].id != ' ' && grid[x][d].whitePiece!=whitePiece) {
-					moves[x][d] = true;
-					d=8;
+				else {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=0;
 				}
 				d--;
 			}
-			d = (byte) y;
+			
+			d = (byte) (y+1);
 			while(d<=7) {
 				if(grid[x][d].id == ' ') {
 					moves[x][d] = true;
 				}
-				if(grid[x][d].id != ' ' && grid[x][d].whitePiece!=whitePiece) {
-					moves[x][d] = true;
-					d=8;
+				else {
+					if(grid[x][d].whitePiece!=whitePiece) {
+						moves[x][d] = true;
+					}
+					d=7;
 				}
 				d++;
+			}
+			dx = (byte) (x+1);
+			dy = (byte) (y+1);
+			while(dx<=7 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=7;
+				}
+				dx++;
+				dy++;
+			}
+			dx = (byte) (x+1);
+			dy = (byte) (y-1);
+			while(dx<=7 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=7;
+					dy=0;
+				}
+				dx++;
+				dy--;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y+1);
+			while(dx>=0 && dy<=7) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=7;
+				}
+				dx--;
+				dy++;
+			}
+			dx = (byte) (x-1);
+			dy = (byte) (y-1);
+			while(dx>=0 && dy>=0) {
+				if(grid[dx][dy].id == ' ') {
+					moves[dx][dy] = true;
+				}
+				else {
+					if(grid[dx][dy].whitePiece!=whitePiece) {
+						moves[dx][dy] = true;
+					}
+					dx=0;
+					dy=0;
+				}
+				dx--;
+				dy--;
 			}
 			break;
 		}
