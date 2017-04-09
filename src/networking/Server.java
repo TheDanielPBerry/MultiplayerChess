@@ -68,8 +68,11 @@ public class Server {
 		case "GET_LIST":
 			String onlinePlayers = "";
 			for(User player : users) {
-				onlinePlayers += player.Username + "||";
+				if(!player.Username.equals(data[1])) {
+					onlinePlayers += player.Username + "||";
+				}
 			}
+			onlinePlayers += "Refresh||";
 			return onlinePlayers;
 		case "GET_USER":
 			user = null;
@@ -123,7 +126,7 @@ public class Server {
         return null;
 	}
 	
-	private static String bufferToString(byte[] buffer) {
+	public static String bufferToString(byte[] buffer) {
 		short i=0;
 		String result = "";
 		while(buffer[i]!=0) {

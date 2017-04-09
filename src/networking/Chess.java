@@ -47,8 +47,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private ArrayList<Cell> blackGY = new ArrayList<Cell>();
 	
 	public static void main(String[] args) {
-		new Chess(new User("Jack",50003,"localhost"), new User("Ass",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		new Chess(new User("Ass",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Jack",50003,"localhost"), new User("Jill",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public Chess(User p1, User p2, boolean wp) {
@@ -155,6 +155,10 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				e.printStackTrace();
 			}
 		}
+		SendMessage("CLOSE||");
+		grave.setVisible(false);
+		grave.dispose();
+		frame.dispose();
 		new Multiplayer(player1);
 	}
 	
@@ -237,6 +241,23 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 			}
 		}
 	}
+
+	
+	public void SendMessage(String data) {
+		try {
+			DatagramSocket socket = new DatagramSocket();
+            player1.Port = socket.getPort();
+            InetAddress destAddress = player2.Ip;
+            byte outBuffer[] = data.getBytes();
+            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
+            socket.send(outPacket);
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	class Move implements Runnable {
 		
 		private String data; 
@@ -259,6 +280,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            InetAddress destAddress = player2.Ip;
 	            byte outBuffer[] = data.getBytes();
 	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
+	            player1.Port = socket.getPort();
 	            socket.send(outPacket);
 				whitePeopleFirst = !whitePeopleFirst;
 				make();
@@ -277,18 +299,24 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            inBuffer = inPacket.getData();
 	            
 	            player2.Port = inPacket.getPort();
-	            String inputData[] = new String(inBuffer).split("\\|\\|");
-	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
-				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
-	            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
-	            
-	            socket.close();
+	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
+	            if(inputData[0].equals("CLOSE")) {
+		            socket.close();
+	            	frame.setVisible(false);
+	            }else if(inputData[0].equals("MESSAGE")) {
+	            	
+	            } else {
+		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
+					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
+		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
+		            socket.close();
+					whitePeopleFirst = !whitePeopleFirst;
+					make();
+					frame.revalidate();
+	            }
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			whitePeopleFirst = !whitePeopleFirst;
-			make();
-			frame.revalidate();
 		}
 		
 		
@@ -301,18 +329,24 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            inBuffer = inPacket.getData();
 	            
 	            player2.Port = inPacket.getPort();
-	            String inputData[] = new String(inBuffer).split("\\|\\|");
-	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
-				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
-	            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
-	            
-	            socket.close();
+	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
+	            if(inputData[0].equals("CLOSE")) {
+		            socket.close();
+	            	frame.setVisible(false);
+	            }else if(inputData[0].equals("MESSAGE")) {
+	            	
+	            } else {
+		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
+					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
+		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
+		            socket.close();
+					whitePeopleFirst = !whitePeopleFirst;
+					make();
+					frame.revalidate();
+	            }
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			whitePeopleFirst = !whitePeopleFirst;
-			make();
-			frame.revalidate();
 		}
 	}
 	

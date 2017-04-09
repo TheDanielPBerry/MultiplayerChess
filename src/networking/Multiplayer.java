@@ -18,13 +18,17 @@ public class Multiplayer implements Runnable {
 		t.start();
 		boolean lobby = true;
 		do {
-			String onlinePlayers = Server.SendMessage("GET_LIST||");
+			String onlinePlayers = Server.SendMessage("GET_LIST||"+user.Username+"||");
 			String[] players = onlinePlayers.split("\\|\\|");
 			String opponentName = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players, null);
 			if(opponentName==null) {
-				logout();
+				if(opponent==null) {
+					logout();
+				}else {
+					return;
+				}
 			} else if(opponentName.equals("Refresh")) { 
-				
+				lobby = true;
 			}else {
 				 lobby = !challenge(opponentName);
 			}
@@ -35,8 +39,13 @@ public class Multiplayer implements Runnable {
 	
 	
 	public void logout() {
-		Server.SendMessage("LOGOUT||"+user.Username+"||");
-		System.out.println();
+		String response = Server.SendMessage("LOGOUT||"+user.Username+"||");
+		if(response.equals("OK")) {
+			JOptionPane.showMessageDialog(null, "Logout Successful");
+			System.exit(0);
+		}
+		JOptionPane.showMessageDialog(null, response);
+		System.exit(1);
 	}
 	
 	public boolean challenge(String opponentName) {
@@ -71,7 +80,7 @@ public class Multiplayer implements Runnable {
 		            byte inBuffer[] = new byte[512];
 		            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
 		            socket.receive(inPacket);
-		            String back = new String(inPacket.getData());
+		            String back = Server.bufferToString(inPacket.getData());
 		            
 		            socket.close();
 		            return back;
@@ -114,7 +123,7 @@ public class Multiplayer implements Runnable {
             inBuffer = inPacket.getData();
             
             InetAddress returnAddress = inPacket.getAddress();
-            String inputData = new String(inBuffer);
+            String inputData = Server.bufferToString(inBuffer);
             String outputData = parseCommand(inputData, inPacket);
             
             byte[] outBuffer = outputData.getBytes();
