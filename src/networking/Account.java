@@ -105,14 +105,14 @@ public class Account extends JFrame implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		if(((JButton)e.getSource())==buttons[1]) {
-			String response = Server.WaitMessage("REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText());
+			String response = Server.SendMessage("REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText()+"||");
 			if(response.equals("OK")) {
 				JOptionPane.showMessageDialog(null, "Account Created Successfully");
 			} else {
 				JOptionPane.showMessageDialog(null, response);
 			}
 		}else if(((JButton)e.getSource())==buttons[0]) {
-			String response = Server.WaitMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText());
+			String response = Server.SendMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||");
 			if(response!= null && response.equals("OK")) {
 				login(new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis())));
 			} else {

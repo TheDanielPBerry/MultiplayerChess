@@ -33,6 +33,7 @@ public class User {
 		Created = Timestamp.valueOf(data[2]);
 	}
 	
+	
 	public String toString() {
 		return Username + "," + PasswordHash + "," + Created.toString() + "\n";
 	}

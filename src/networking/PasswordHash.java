@@ -5,10 +5,6 @@ import java.util.Random;
 
 public class PasswordHash {
 	
-	public static void main(String[] args) {
-		System.out.println(generateSalt());
-	}
-	
 	
 	public static String Hash(String password) {
 		String salt = generateSalt();
