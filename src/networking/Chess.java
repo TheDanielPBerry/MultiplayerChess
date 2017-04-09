@@ -267,7 +267,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				whitePeopleFirst = !whitePeopleFirst;
 				make();
 				frame.revalidate();
-				WaitMove(socket);
+				socket.close();
+				WaitMove();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

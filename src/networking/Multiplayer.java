@@ -32,6 +32,7 @@ public class Multiplayer implements Runnable {
 	public void logout() {
 		
 	}
+	
 	public void challenge(String opponentName) {
 		String response[] = Server.SendMessage("GET_USER||" + opponentName + "||").split("\\|\\|");
 		opponent = new User(response[0],Integer.parseInt(response[1]),response[2]);
