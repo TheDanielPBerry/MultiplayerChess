@@ -16,9 +16,11 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 public class Chess extends JPanel implements Runnable, MouseListener {
 	
@@ -38,14 +40,17 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private boolean availableMoves[][] = new boolean[8][8];
 	private Point selectedCell = new Point(8,8);
 	private boolean whitePeopleFirst = true;
+	private boolean whitePrivilege;
+	private User p1;
+	private User p2;
 	private ArrayList whiteGY = new ArrayList();
 	private ArrayList blackGY = new ArrayList();
 	
 	public static void main(String[] args) {
-		new Chess(args).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//new Chess(args).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
-	public Chess(String[] args) {
+	public Chess(User player1, User player2, boolean wp) {
 		frame = new JFrame("Chess");
 		DIM = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setSize((int)(DIM.height/1.5),(int)(DIM.height/1.5));
@@ -60,6 +65,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		requestFocus();
 		buffer = new BufferedImage((int)(DIM.height/1.5),(int)(DIM.height/1.5), BufferedImage.TYPE_INT_ARGB);
 		g3 = buffer.getGraphics();
+		p1 = player1;
+		p2 = player2;
+		whitePrivilege = wp;
 		resetBoard();
 		Graveyard();
 		Thread t = new Thread(this);
@@ -74,16 +82,18 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		grave.setLayout(new GridLayout(2,1));
 		JPanel top = new JPanel();
 		top.setLayout(new BoxLayout(top,BoxLayout.Y_AXIS));
-		JLabel WGYLabel = new JLabel("White Graveyard");
+		JLabel WGYLabel = new JLabel(p1.Username + "'s Graveyard");
 		WGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 		top.add(WGYLabel);
+		WGYLabel.setAlignmentX(CENTER_ALIGNMENT);
 		WGY = new JPanel(new GridLayout(4,4));
 		top.add(WGY);
 		JPanel bottom = new JPanel();
 		bottom.setLayout(new BoxLayout(bottom,BoxLayout.Y_AXIS));
-		JLabel BGYLabel = new JLabel("Black Graveyard");
+		JLabel BGYLabel = new JLabel(p2.Username + "'s Graveyard");
 		BGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 		bottom.add(BGYLabel);
+		BGYLabel.setAlignmentX(CENTER_ALIGNMENT);
 		BGY = new JPanel(new GridLayout(4,4));
 		bottom.add(BGY);
 		grave.add(top);
