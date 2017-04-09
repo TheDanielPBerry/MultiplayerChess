@@ -24,7 +24,7 @@ public class Multiplayer {
 		for(User u : User.ReadUsers("res\\User.csv")){
 			players.add(u.Username);
 		}
-		String opponent = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, (String[])players.toArray(), null);
+		String opponent = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players.toArray(), null);
 		if(opponent==null) {
 			logout();
 		} else {

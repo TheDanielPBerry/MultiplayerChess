@@ -14,21 +14,22 @@ public class Server {
 	
 	public static void main(String[] args) {
 		try {
-			DatagramSocket socket = new DatagramSocket(PORT);
 	        while (true) {
-	            byte[] buffer = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(buffer, buffer.length);
+				DatagramSocket socket = new DatagramSocket(PORT);
+	            byte[] inBuffer = new byte[512];
+	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
 	            socket.receive(inPacket);
 	            
 	            InetAddress returnAddress = inPacket.getAddress();
-	            String inputData = Server.bufferToString(buffer);
+	            String inputData = Server.bufferToString(inBuffer);
 	            System.out.println("> " + inputData);
 	            String outputData = parseCommand(inputData);
 	            System.out.println("< " + outputData);
 	            
-	            buffer = outputData.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, returnAddress, inPacket.getPort());
+	            byte[] outBuffer = outputData.getBytes();
+	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
 	            socket.send(outPacket);
+	            socket.close();
 	        }
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -71,16 +72,18 @@ public class Server {
 			DatagramSocket socket = new DatagramSocket();
 	        while (true) {
 	            InetAddress destAddress = InetAddress.getByName(Account.Ip);
-	            byte[] buffer = data.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(buffer, buffer.length, destAddress, PORT);
+	            byte outBuffer[] = data.getBytes();
+	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, PORT);
 	            socket.send(outPacket);
 	            
 	            
-	            buffer = new byte[256];
-	            DatagramPacket inPacket = new DatagramPacket(buffer, buffer.length);
+	            byte inBuffer[] = new byte[512];
+	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
 	            socket.receive(inPacket);
+	            String back = bufferToString(inPacket.getData());
 	            
 	            socket.close();
+	            return back;
 	        }
 		} catch (IOException e) {
 			e.printStackTrace();
