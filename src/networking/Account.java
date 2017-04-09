@@ -27,8 +27,9 @@ public class Account extends JFrame implements ActionListener {
 	
 	public static void main(String args[]){
 	    Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
-	    
-		new Account();
+	    if(Ip != null) {
+			new Account();
+	    }
 	}
 	
 	public Account(){

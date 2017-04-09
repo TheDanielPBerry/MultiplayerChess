@@ -1,8 +1,6 @@
 package networking;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -17,15 +15,12 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class Chess extends JPanel implements Runnable, MouseListener {
 	
@@ -160,6 +155,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				e.printStackTrace();
 			}
 		}
+		new Multiplayer(player1);
 	}
 	
 	public void movePiece(byte x, byte y) {
@@ -267,8 +263,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				whitePeopleFirst = !whitePeopleFirst;
 				make();
 				frame.revalidate();
-				socket.close();
-				WaitMove();
+				WaitMove(socket);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -281,6 +276,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            socket.receive(inPacket);
 	            inBuffer = inPacket.getData();
 	            
+	            player2.Port = inPacket.getPort();
 	            String inputData[] = new String(inBuffer).split("\\|\\|");
 	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
@@ -304,6 +300,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            socket.receive(inPacket);
 	            inBuffer = inPacket.getData();
 	            
+	            player2.Port = inPacket.getPort();
 	            String inputData[] = new String(inBuffer).split("\\|\\|");
 	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);

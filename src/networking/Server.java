@@ -83,8 +83,17 @@ public class Server {
 			}
 			return "No Valid User";
 		case "LOGOUT":
-			
-			return "DOPE";
+			user = null;
+			for(User player : users) {
+				if(player.Username.equals(data[1])) {
+					user = player;
+				}
+			}
+			if(user!=null) {
+				users.remove(user);
+				return "OK";
+			}
+			return "Logout Failure";
 		}
 		return "Unknown Command Error";
 	}

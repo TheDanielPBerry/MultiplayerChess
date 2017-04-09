@@ -16,29 +16,44 @@ public class Multiplayer implements Runnable {
 		
 		Thread t = new Thread(this);
 		t.start();
-		
-		String onlinePlayers = Server.SendMessage("GET_LIST||");
-		String[] players = onlinePlayers.split("\\|\\|");
-		String opponent = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players, null);
-		if(opponent==null) {
-			logout();
-		} else {
-			challenge(opponent);
-		}
+		boolean lobby = true;
+		do {
+			String onlinePlayers = Server.SendMessage("GET_LIST||");
+			String[] players = onlinePlayers.split("\\|\\|");
+			String opponentName = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players, null);
+			if(opponentName==null) {
+				logout();
+			} else if(opponentName.equals("Refresh")) { 
+				
+			}else {
+				 lobby = !challenge(opponentName);
+			}
+		}while(lobby);
+		new Chess(user, opponent, true);
 	}
 	
 	
 	
 	public void logout() {
-		
+		Server.SendMessage("LOGOUT||"+user.Username+"||");
+		System.out.println();
 	}
 	
-	public void challenge(String opponentName) {
-		String response[] = Server.SendMessage("GET_USER||" + opponentName + "||").split("\\|\\|");
-		opponent = new User(response[0],Integer.parseInt(response[1]),response[2]);
-		if(SendMessage("CHALLENGE||"+user.Username+"||"+opponentName+"||")!=null) {
-			new Chess(user, opponent, true);
+	public boolean challenge(String opponentName) {
+		int n = JOptionPane.showConfirmDialog(
+                null, "Do you want to challenge " + opponentName, "Challenge",
+                JOptionPane.YES_NO_OPTION);
+		if(n==0) {
+			String response[] = Server.SendMessage("GET_USER||" + opponentName + "||").split("\\|\\|");
+			opponent = new User(response[0],Integer.parseInt(response[1]),response[2]);
+			String challengeResponse = SendMessage("CHALLENGE||"+user.Username+"||"+opponentName+"||");
+			if(challengeResponse!=null && challengeResponse.equals("OK")) {
+				return true;
+			}else {
+				JOptionPane.showMessageDialog(null, challengeResponse);
+			}
 		}
+		return false;
 	}
 	
 	
@@ -74,12 +89,13 @@ public class Multiplayer implements Runnable {
 		switch(data[0]) {
 		case "CHALLENGE":
 			int n = JOptionPane.showConfirmDialog(
-                    null, "Challenge", data[1] + " wants to challenge you.",
+                    null, data[1] + " wants to challenge you.", "Challenge",
                     JOptionPane.YES_NO_OPTION);
 			if(n==0) {
 				opponent = new User(data[1], packet.getPort(), packet.getAddress().toString().replace("/",""));
 				return "OK";
 			}
+			return "Challenge Declined!";
 		}
 		return null;
 	}
@@ -104,9 +120,13 @@ public class Multiplayer implements Runnable {
             byte[] outBuffer = outputData.getBytes();
             DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
             socket.send(outPacket);
-            socket.close();
             
-            new Chess(user, opponent, false);
+            if(inputData.contains("CHALLENGE") && outputData.contains("OK")) {
+            	new Chess(user, opponent, false);
+                socket.close();
+            }else {
+            	listen();
+            }
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
