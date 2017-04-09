@@ -264,6 +264,27 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            byte outBuffer[] = data.getBytes();
 	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
 	            socket.send(outPacket);
+				whitePeopleFirst = !whitePeopleFirst;
+				make();
+				frame.revalidate();
+				WaitMove(socket);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void WaitMove(DatagramSocket socket) {
+			try {
+	            byte[] inBuffer = new byte[512];
+	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+	            socket.receive(inPacket);
+	            inBuffer = inPacket.getData();
+	            
+	            String inputData[] = new String(inBuffer).split("\\|\\|");
+	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
+				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
+	            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
+	            
 	            socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -271,8 +292,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 			whitePeopleFirst = !whitePeopleFirst;
 			make();
 			frame.revalidate();
-			WaitMove();
 		}
+		
 		
 		public void WaitMove() {
 			try {
