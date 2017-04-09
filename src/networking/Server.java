@@ -5,12 +5,14 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.sql.Timestamp;
-import java.util.Base64;
+import java.util.ArrayList;
 
 
 public class Server {
 	
-	public static final short PORT = 9001;
+	public static final int PORT = 9001;
+	/**A collection of all the players online*/
+	private static ArrayList<User> users = new ArrayList<User>();
 	
 	public static void main(String[] args) {
 		try {
@@ -19,11 +21,12 @@ public class Server {
 	            byte[] inBuffer = new byte[512];
 	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
 	            socket.receive(inPacket);
+	            inBuffer = inPacket.getData();
 	            
 	            InetAddress returnAddress = inPacket.getAddress();
 	            String inputData = Server.bufferToString(inBuffer);
 	            System.out.println("> " + inputData);
-	            String outputData = parseCommand(inputData);
+	            String outputData = parseCommand(inputData, inPacket);
 	            System.out.println("< " + outputData);
 	            
 	            byte[] outBuffer = outputData.getBytes();
@@ -39,7 +42,7 @@ public class Server {
 	
 	
 	
-	public static String parseCommand(String command) {
+	public static String parseCommand(String command, DatagramPacket packet) {
 		String data[] = command.split("\\|\\|");
 		switch(data[0]) {
 		case "REGISTER":
@@ -53,17 +56,37 @@ public class Server {
 			user = User.GetUser(data[1]);
 			if(user!=null) {
 				if(PasswordHash.Compare(user.PasswordHash, data[2])) {
-					return "OK";
+					user.Port = packet.getPort();
+					user.Ip = packet.getAddress();
+					users.add(user);
+					return "OK||" + user.Port + "||";
 				} else {
 					return "Password Incorrect";
 				}
 			}
 			return "Username Does Not Exist";
+		case "GET_LIST":
+			String onlinePlayers = "";
+			for(User player : users) {
+				onlinePlayers += player.Username + "||";
+			}
+			return onlinePlayers;
+		case "GET_USER":
+			user = null;
+			for(User player : users) {
+				if(player.Username.equals(data[1])) {
+					user = player;
+				}
+			}
+			if(user!=null) {
+				return user.Username + "||" + user.Port + "||" + user.Ip.toString().replace("/","") + "||";
+			}
+			return "No Valid User";
+		case "LOGOUT":
+			
+			return "DOPE";
 		}
 		return "Unknown Command Error";
-	}
-	
-	public void login(User user) {
 	}
 	
 	

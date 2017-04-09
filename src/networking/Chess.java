@@ -13,6 +13,11 @@ import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
@@ -41,16 +46,17 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private Point selectedCell = new Point(8,8);
 	private boolean whitePeopleFirst = true;
 	private boolean whitePrivilege;
-	private User p1;
-	private User p2;
-	private ArrayList whiteGY = new ArrayList();
-	private ArrayList blackGY = new ArrayList();
+	private User player1;
+	private User player2;
+	private ArrayList<Cell> whiteGY = new ArrayList<Cell>();
+	private ArrayList<Cell> blackGY = new ArrayList<Cell>();
 	
 	public static void main(String[] args) {
-		//new Chess(args).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Jack",50003,"localhost"), new User("Ass",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Ass",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
-	public Chess(User player1, User player2, boolean wp) {
+	public Chess(User p1, User p2, boolean wp) {
 		frame = new JFrame("Chess");
 		DIM = Toolkit.getDefaultToolkit().getScreenSize();
 		frame.setSize((int)(DIM.height/1.5),(int)(DIM.height/1.5));
@@ -65,13 +71,17 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		requestFocus();
 		buffer = new BufferedImage((int)(DIM.height/1.5),(int)(DIM.height/1.5), BufferedImage.TYPE_INT_ARGB);
 		g3 = buffer.getGraphics();
-		p1 = player1;
-		p2 = player2;
+		player1 = p1;
+		player2 = p2;
 		whitePrivilege = wp;
 		resetBoard();
 		Graveyard();
 		Thread t = new Thread(this);
 		t.start();
+		
+		if(!wp) {
+			new Thread(new Move(null)).start();
+		}
 	}
 	
 	public void Graveyard(){
@@ -82,20 +92,25 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		grave.setLayout(new GridLayout(2,1));
 		JPanel top = new JPanel();
 		top.setLayout(new BoxLayout(top,BoxLayout.Y_AXIS));
-		JLabel WGYLabel = new JLabel(p1.Username + "'s Graveyard");
+		JLabel WGYLabel = new JLabel(player1.Username + "'s Graveyard");
 		WGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 		top.add(WGYLabel);
 		WGYLabel.setAlignmentX(CENTER_ALIGNMENT);
 		WGY = new JPanel(new GridLayout(4,4));
-		top.add(WGY);
 		JPanel bottom = new JPanel();
 		bottom.setLayout(new BoxLayout(bottom,BoxLayout.Y_AXIS));
-		JLabel BGYLabel = new JLabel(p2.Username + "'s Graveyard");
+		JLabel BGYLabel = new JLabel(player2.Username + "'s Graveyard");
 		BGYLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 		bottom.add(BGYLabel);
 		BGYLabel.setAlignmentX(CENTER_ALIGNMENT);
 		BGY = new JPanel(new GridLayout(4,4));
-		bottom.add(BGY);
+		if(whitePrivilege) {
+			top.add(WGY);
+			bottom.add(BGY);
+		} else {
+			bottom.add(WGY);
+			top.add(BGY);
+		}
 		grave.add(top);
 		grave.add(bottom);
 	}
@@ -119,7 +134,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 					g3.fillRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
 					g3.setColor(Color.BLUE);
 					g3.drawRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
-				}else if(x%2==0 && y%2==0 || x%2==1 && y%2==1) {
+				} else if(x%2==0 && y%2==0 || x%2==1 && y%2==1) {
 					g3.setColor(new Color(163,64,29));
 					g3.fillRect(x*(getWidth()/8),y*(getWidth()/8),(getWidth()/8),(getWidth()/8));
 				}
@@ -161,20 +176,22 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 							JLabel tempLabel = new JLabel(""+board[x][y].id);
 							tempLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 							WGY.add(tempLabel);
-							whiteGY.add(board[x][y].id);
+							whiteGY.add(board[x][y]);
 						}
 						else{
 							JLabel tempLabel = new JLabel(""+board[x][y].id);
 							tempLabel.setFont(new Font(getFont().getFontName(),Font.PLAIN,20));
 							BGY.add(tempLabel);
-							blackGY.add(+board[x][y].id);
+							blackGY.add(board[x][y]);
 						}
 						grave.revalidate();
 						grave.repaint();
 					}
 					board[x][y] = temp;
+					if(whitePrivilege==whitePeopleFirst) {
+						new Thread(new Move(selectedCell.x + "||" + selectedCell.y + "||" + x + "||" + y + "||")).start();
+					}
 					selectedCell = new Point(8,8);
-					whitePeopleFirst = !whitePeopleFirst;
 				}
 			}
 		}
@@ -182,7 +199,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	}
 	
 	public void mousePressed(MouseEvent e) {
-		if(e.getButton()==1) {
+		if(e.getButton()==1 && whitePrivilege==whitePeopleFirst) {
 			byte x = (byte) (((e.getX()+0.0)/frame.getWidth())*8), y = (byte) (((e.getY()+0.0)/frame.getWidth())*8);
 			if(selectedCell.x==8) {
 				if(board[x][y].whitePiece==whitePeopleFirst) {
@@ -223,7 +240,61 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				board[x][y] = new Cell((char) pieces[y][x]);
 			}
 		}
+	}
+	class Move implements Runnable {
 		
+		private String data; 
+		
+		public Move(String d) {
+			data = d;
+		}
+		
+		public void run() {
+			if(data==null) {
+				WaitMove();
+			}else {
+				MoveSend(data);
+			}
+		}
+		
+		public void MoveSend(String data) {
+			try {
+				DatagramSocket socket = new DatagramSocket();
+	            InetAddress destAddress = player2.Ip;
+	            byte outBuffer[] = data.getBytes();
+	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
+	            socket.send(outPacket);
+	            socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			whitePeopleFirst = !whitePeopleFirst;
+			make();
+			frame.revalidate();
+			WaitMove();
+		}
+		
+		public void WaitMove() {
+			try {
+				DatagramSocket socket = new DatagramSocket(player1.Port);
+	            byte[] inBuffer = new byte[512];
+	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+	            socket.receive(inPacket);
+	            inBuffer = inPacket.getData();
+	            
+	            String inputData[] = new String(inBuffer).split("\\|\\|");
+	            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
+				availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
+	            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
+	            
+	            socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			whitePeopleFirst = !whitePeopleFirst;
+			make();
+			frame.revalidate();
+		}
 	}
 	
 }

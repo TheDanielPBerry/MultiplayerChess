@@ -7,6 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -15,6 +17,8 @@ public class User {
 	
 	public String Username;
 	public String PasswordHash;
+	public InetAddress Ip;
+	public int Port;
 	public Timestamp Created;
 
 	public User(String username, String password, String datetime) {
@@ -32,6 +36,16 @@ public class User {
 		PasswordHash = data[1];
 		Created = Timestamp.valueOf(data[2]);
 	}
+	public User(String uname, int port, String ip) {
+		Username = uname;
+		Port = port;
+		try {
+			Ip = InetAddress.getByName(ip);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	
 	public String toString() {

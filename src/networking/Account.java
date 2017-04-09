@@ -104,6 +104,7 @@ public class Account extends JFrame implements ActionListener {
 	}
 	
 	public void actionPerformed(ActionEvent e) {
+		//Register
 		if(((JButton)e.getSource())==buttons[1]) {
 			String response = Server.SendMessage("REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText()+"||");
 			if(response.equals("OK")) {
@@ -111,10 +112,15 @@ public class Account extends JFrame implements ActionListener {
 			} else {
 				JOptionPane.showMessageDialog(null, response);
 			}
-		}else if(((JButton)e.getSource())==buttons[0]) {
-			String response = Server.SendMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||");
-			if(response!= null && response.equals("OK")) {
-				login(new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis())));
+		}
+		
+		//Login
+		else if(((JButton)e.getSource())==buttons[0]) {
+			String response[]= Server.SendMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||").split("\\|\\|");
+			if(response[0]!= null && response[0].equals("OK")) {
+				User user = new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis()));
+				user.Port = Integer.parseInt(response[1]);
+				login(user);
 			} else {
 				JOptionPane.showMessageDialog(null, response);
 			}
