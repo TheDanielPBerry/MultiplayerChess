@@ -97,6 +97,8 @@ public class Server {
 				return "OK";
 			}
 			return "Logout Failure";
+		case "VERIFY":
+			return "CONNECTION_PROCEED||";
 		}
 		return "Unknown Command Error";
 	}

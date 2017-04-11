@@ -26,10 +26,18 @@ public class Account extends JFrame implements ActionListener {
 	public static String Ip;
 	
 	public static void main(String args[]){
-	    Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
-	    if(Ip != null) {
-			new Account();
-	    }
+	    do {
+	    	Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
+	    	if(Ip != null) {
+		    	String response [] = Server.SendMessage("VERIFY||").split("\\|\\|");
+	    		if(response[0].equals("CONNECTION_PROCEED")) {
+	    			new Account();
+	    			break;
+	    		}else {
+	    			JOptionPane.showMessageDialog(null, "Not a valid chess server");
+	    		}
+	    	}
+	    } while(Ip!=null);
 	}
 	
 	public Account(){
