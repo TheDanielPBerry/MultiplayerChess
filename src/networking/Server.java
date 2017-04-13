@@ -1,48 +1,89 @@
 package networking;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 
-public class Server {
+public class Server implements Runnable {
 	
 	public static final int PORT = 9001;
 	/**A collection of all the players online*/
 	private static ArrayList<User> users = new ArrayList<User>();
 	
+	private static final byte threadPoolSize = 10;
+	
+	private static ServerSocket serverSocket;
+	
 	public static void main(String[] args) {
+        ServerSocket socket;
 		try {
-	        while (true) {
-				DatagramSocket socket = new DatagramSocket(PORT);
-	            byte[] inBuffer = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-	            socket.receive(inPacket);
-	            inBuffer = inPacket.getData();
-	            
-	            InetAddress returnAddress = inPacket.getAddress();
-	            String inputData = Server.bufferToString(inBuffer);
-	            System.out.println("> " + inputData);
-	            String outputData = parseCommand(inputData, inPacket);
-	            System.out.println("< " + outputData);
-	            
-	            byte[] outBuffer = outputData.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
-	            socket.send(outPacket);
-	            socket.close();
-	        }
+			socket = new ServerSocket(80);
+			for(byte i=0; i<threadPoolSize; i++) {
+				Thread t = new Thread(new Server(socket));
+				t.start();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public Server(ServerSocket s) {
+		serverSocket = s;
+	}
+	
+	public void run() {
+		while(true) {
+			try {
+//				DatagramSocket socket = new DatagramSocket(PORT);
+//	            byte[] inBuffer = new byte[512];
+//	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
+//	            socket.receive(inPacket);
+//	            inBuffer = inPacket.getData();
+//	            
+//	            InetAddress returnAddress = inPacket.getAddress();
+//	            String inputData = Server.bufferToString(inBuffer);
+//	            System.out.println("> " + inputData);
+//	            String outputData = Server.ParseCommand(inputData, inPacket);
+//	            System.out.println("< " + outputData);
+//	            
+//	            byte[] outBuffer = outputData.getBytes();
+//	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
+//	            socket.send(outPacket);
+//	            socket.close();
+	            
+	            	
+	                Socket connSocket = serverSocket.accept();
+	                Scanner input = new Scanner(connSocket.getInputStream());
+	                DataOutputStream output = new DataOutputStream(connSocket.getOutputStream());
+
+	                // get the message from client
+	                
+	                output.writeBytes(Server.ParseCommand(input.nextLine(), 
+	                		new DatagramPacket(null, 0, connSocket.getInetAddress(), connSocket.getPort())));
+	                
+	                
+	                // close stream and socket
+	                input.close();
+	                output.close();
+	                connSocket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
 	
 	
 	
-	public static String parseCommand(String command, DatagramPacket packet) {
+	public static String ParseCommand(String command, DatagramPacket packet) {
 		String data[] = command.split("\\|\\|");
 		switch(data[0]) {
 		case "REGISTER":
