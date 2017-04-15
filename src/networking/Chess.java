@@ -1,6 +1,8 @@
 package networking;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -8,6 +10,8 @@ import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -21,6 +25,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 public class Chess extends JPanel implements Runnable, MouseListener {
 	
@@ -29,6 +35,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private static final long serialVersionUID = -8316910605042033620L;
 	private JFrame frame;
 	private JFrame grave;
+	private JFrame chat;
+	private Container messages;
 	private JPanel WGY;
 	private JPanel BGY;
 	private BufferedImage buffer;
@@ -48,7 +56,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	public static void main(String[] args) {
 		new Chess(new User("Jack",50003,"localhost"), new User("Jill",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public Chess(User p1, User p2, boolean wp) {
@@ -71,6 +79,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		whitePrivilege = wp;
 		resetBoard();
 		Graveyard();
+		Chat();
 		Thread t = new Thread(this);
 		t.start();
 		
@@ -108,6 +117,35 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		}
 		grave.add(top);
 		grave.add(bottom);
+	}
+	
+	public void Chat(){
+		chat = new JFrame("Chat");
+		chat.setSize(300,(int)(DIM.height/1.5));
+		chat.setLocation((int) (frame.getX()-310),frame.getY());
+		chat.setVisible(true);
+		JTextField inputChat = new JTextField();
+		messages = new Container();
+		messages.setLayout(new BoxLayout(messages, BoxLayout.Y_AXIS));
+		chat.add(messages, BorderLayout.NORTH);
+		inputChat.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JTextArea message = new JTextArea(inputChat.getText());
+				message.setLineWrap(true);
+				message.setEditable(false);
+				message.setAlignmentX(RIGHT_ALIGNMENT);
+				message.setBackground(Color.GREEN);
+				messages.add(message);
+            	messages.revalidate();
+            	messages.repaint();
+				SendMessage("MESSAGE||"+inputChat.getText()+"||");
+				inputChat.setText("");
+			}
+		});
+		chat.add(inputChat, BorderLayout.SOUTH);
+    	chat.revalidate();
+    	chat.repaint();
+		
 	}
 	
 	public void update(Graphics g) {
@@ -304,7 +342,14 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		            socket.close();
 	            	frame.setVisible(false);
 	            }else if(inputData[0].equals("MESSAGE")) {
-	            	
+	            	JTextArea message = new JTextArea(inputData[1]);
+	            	message.setEditable(false);
+	            	message.setLineWrap(true);
+					message.setAlignmentX(LEFT_ALIGNMENT);
+					message.setBackground(Color.GRAY);
+	            	messages.add(message);
+	            	messages.revalidate();
+	            	messages.repaint();
 	            } else {
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
@@ -334,7 +379,14 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		            socket.close();
 	            	frame.setVisible(false);
 	            }else if(inputData[0].equals("MESSAGE")) {
-	            	
+	            	JTextArea message = new JTextArea(inputData[1]);
+	            	message.setEditable(false);
+	            	message.setLineWrap(true);
+					message.setAlignmentX(LEFT_ALIGNMENT);
+					message.setBackground(Color.GRAY);
+	            	messages.add(message);
+	            	messages.revalidate();
+	            	messages.repaint();
 	            } else {
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
