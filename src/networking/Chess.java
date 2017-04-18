@@ -2,6 +2,7 @@ package networking;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -22,6 +23,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -53,6 +55,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private User player2;
 	private ArrayList<Cell> whiteGY = new ArrayList<Cell>();
 	private ArrayList<Cell> blackGY = new ArrayList<Cell>();
+	private ArrayList<String> transcript = new ArrayList<String>();
+	
 	
 	public static void main(String[] args) {
 		new Chess(new User("Jack",50003,"localhost"), new User("Jill",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -126,7 +130,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		chat.setVisible(true);
 		JTextField inputChat = new JTextField();
 		messages = new Container();
-		messages.setLayout(new BoxLayout(messages, BoxLayout.Y_AXIS));
+		messages.setLayout(new BoxLayout(messages, BoxLayout.PAGE_AXIS));
 		chat.add(messages, BorderLayout.NORTH);
 		inputChat.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -138,7 +142,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				messages.add(message);
             	messages.revalidate();
             	messages.repaint();
-				SendMessage("MESSAGE||"+inputChat.getText()+"||");
+            	transcript.add("MESSAGE||"+inputChat.getText()+"||");
 				inputChat.setText("");
 			}
 		});
@@ -314,6 +318,14 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		
 		public void MoveSend(String data) {
 			try {
+				for(String s : transcript) {
+					SendMessage(s);
+				}
+				for(Component c : messages.getComponents()) {
+					
+				}
+				transcript.clear();
+				
 				DatagramSocket socket = new DatagramSocket();
 	            InetAddress destAddress = player2.Ip;
 	            byte outBuffer[] = data.getBytes();
@@ -338,10 +350,12 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            
 	            player2.Port = inPacket.getPort();
 	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
-	            if(inputData[0].equals("CLOSE")) {
+	            switch(inputData[0]) {
+        		case "CLOSE":
 		            socket.close();
 	            	frame.setVisible(false);
-	            }else if(inputData[0].equals("MESSAGE")) {
+	            	break;
+            	case "MESSAGE":
 	            	JTextArea message = new JTextArea(inputData[1]);
 	            	message.setEditable(false);
 	            	message.setLineWrap(true);
@@ -350,7 +364,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	messages.add(message);
 	            	messages.revalidate();
 	            	messages.repaint();
-	            } else {
+	            	WaitMove(socket);
+	            	break;
+	            default:
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
 		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
@@ -375,10 +391,12 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            
 	            player2.Port = inPacket.getPort();
 	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
-	            if(inputData[0].equals("CLOSE")) {
+	            switch(inputData[0]) {
+        		case "CLOSE":
 		            socket.close();
 	            	frame.setVisible(false);
-	            }else if(inputData[0].equals("MESSAGE")) {
+	            	break;
+            	case "MESSAGE":
 	            	JTextArea message = new JTextArea(inputData[1]);
 	            	message.setEditable(false);
 	            	message.setLineWrap(true);
@@ -387,7 +405,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	messages.add(message);
 	            	messages.revalidate();
 	            	messages.repaint();
-	            } else {
+	            	WaitMove(socket);
+	            	break;
+	            default:
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
 		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
