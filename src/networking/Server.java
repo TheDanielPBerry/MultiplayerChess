@@ -53,21 +53,6 @@ public class Server implements Runnable {
 	            socket.send(outPacket);
 	            socket.close();
 	            
-	            	
-//	                Socket connSocket = serverSocket.accept();
-//	                Scanner input = new Scanner(connSocket.getInputStream());
-//	                DataOutputStream output = new DataOutputStream(connSocket.getOutputStream());
-//
-//	                // get the message from client
-//	                
-//	                output.writeBytes(Server.ParseCommand(input.nextLine(), 
-//	                		new DatagramPacket(null, 0, connSocket.getInetAddress(), connSocket.getPort())));
-//	                
-//	                
-//	                // close stream and socket
-//	                input.close();
-//	                output.close();
-//	                connSocket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

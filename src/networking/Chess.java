@@ -2,7 +2,6 @@ package networking;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -23,12 +22,13 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 public class Chess extends JPanel implements Runnable, MouseListener {
 	
@@ -45,7 +45,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private Graphics g3;
 	private final Dimension DIM;
 	private byte refresh = 0;
-	private final byte refreshRate = 40;
+	private final byte refreshRate = 50;
 	private Cell board[][];
 	private boolean availableMoves[][] = new boolean[8][8];
 	private Point selectedCell = new Point(8,8);
@@ -60,7 +60,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	public static void main(String[] args) {
 		new Chess(new User("Jack",50003,"localhost"), new User("Jill",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public Chess(User p1, User p2, boolean wp) {
@@ -130,19 +130,25 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		chat.setVisible(true);
 		JTextField inputChat = new JTextField();
 		messages = new Container();
-		messages.setLayout(new BoxLayout(messages, BoxLayout.PAGE_AXIS));
+		messages.setLayout(new BoxLayout(messages, BoxLayout.Y_AXIS));
 		chat.add(messages, BorderLayout.NORTH);
 		inputChat.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JTextArea message = new JTextArea(inputChat.getText());
-				message.setLineWrap(true);
+				JTextPane message = new JTextPane();
+				SimpleAttributeSet attribs = new SimpleAttributeSet();
+				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_LEFT);
+				message.setParagraphAttributes(attribs, true);
+				message.setText(inputChat.getText());
 				message.setEditable(false);
-				message.setAlignmentX(RIGHT_ALIGNMENT);
 				message.setBackground(Color.GREEN);
 				messages.add(message);
             	messages.revalidate();
             	messages.repaint();
-            	transcript.add("MESSAGE||"+inputChat.getText()+"||");
+            	if(whitePrivilege!=whitePeopleFirst) {
+            		transcript.add("MESSAGE||"+inputChat.getText()+"||");
+            	} else {
+            		SendMessage("MESSAGE||"+inputChat.getText()+"||");
+            	}
 				inputChat.setText("");
 			}
 		});
@@ -199,7 +205,9 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		}
 		SendMessage("CLOSE||");
 		grave.setVisible(false);
+		chat.setVisible(false);
 		grave.dispose();
+		chat.dispose();
 		frame.dispose();
 		new Multiplayer(player1);
 	}
@@ -249,7 +257,22 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 					availableMoves = board[x][y].possibleMoves(selectedCell, board);
 				}
 			}
-			else if(board[selectedCell.x][selectedCell.y].whitePiece==whitePeopleFirst) movePiece(x,y);
+			else if(board[selectedCell.x][selectedCell.y].whitePiece==whitePeopleFirst) {
+				JTextPane message = new JTextPane();
+				SimpleAttributeSet attribs = new SimpleAttributeSet();
+				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
+				message.setParagraphAttributes(attribs, true);
+				message.setText(PositionName((byte)selectedCell.x,(byte)selectedCell.y) +
+						" moves to " +
+						PositionName(x, y));
+				message.setEditable(false);
+				message.setBackground(Color.GREEN);
+            	messages.add(message);
+            	messages.revalidate();
+            	messages.repaint();
+            	
+				movePiece(x,y);
+			}
 		}
 	}
 	public void mouseReleased(MouseEvent e) {
@@ -318,14 +341,11 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		
 		public void MoveSend(String data) {
 			try {
+				
 				for(String s : transcript) {
 					SendMessage(s);
 				}
-				for(Component c : messages.getComponents()) {
-					
-				}
 				transcript.clear();
-				
 				DatagramSocket socket = new DatagramSocket();
 	            InetAddress destAddress = player2.Ip;
 	            byte outBuffer[] = data.getBytes();
@@ -356,10 +376,12 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	frame.setVisible(false);
 	            	break;
             	case "MESSAGE":
-	            	JTextArea message = new JTextArea(inputData[1]);
-	            	message.setEditable(false);
-	            	message.setLineWrap(true);
-					message.setAlignmentX(LEFT_ALIGNMENT);
+    				JTextPane message = new JTextPane();
+    				SimpleAttributeSet attribs = new SimpleAttributeSet();
+    				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
+    				message.setParagraphAttributes(attribs, true);
+    				message.setText(inputData[1]);
+    				message.setEditable(false);
 					message.setBackground(Color.GRAY);
 	            	messages.add(message);
 	            	messages.revalidate();
@@ -397,10 +419,12 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	frame.setVisible(false);
 	            	break;
             	case "MESSAGE":
-	            	JTextArea message = new JTextArea(inputData[1]);
-	            	message.setEditable(false);
-	            	message.setLineWrap(true);
-					message.setAlignmentX(LEFT_ALIGNMENT);
+    				JTextPane message = new JTextPane();
+    				SimpleAttributeSet attribs = new SimpleAttributeSet();
+    				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
+    				message.setParagraphAttributes(attribs, true);
+    				message.setText(inputData[1]);
+    				message.setEditable(false);
 					message.setBackground(Color.GRAY);
 	            	messages.add(message);
 	            	messages.revalidate();
@@ -411,6 +435,20 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
 					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
 		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
+
+    				message = new JTextPane();
+    				attribs = new SimpleAttributeSet();
+    				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
+    				message.setParagraphAttributes(attribs, true);
+    				message.setText(PositionName(Byte.parseByte(inputData[0]),Byte.parseByte(inputData[1])) +
+    						" moves to " +
+    						PositionName(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3])));
+    				message.setEditable(false);
+					message.setBackground(Color.GRAY);
+	            	messages.add(message);
+	            	messages.revalidate();
+	            	messages.repaint();
+	            	
 		            socket.close();
 					whitePeopleFirst = !whitePeopleFirst;
 					make();
@@ -420,6 +458,11 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public static String PositionName(byte a, byte b) {
+		char column = (char)(a+65);
+		return column + "" + (b+1);
 	}
 	
 }

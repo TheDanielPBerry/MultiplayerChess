@@ -98,7 +98,7 @@ public class Multiplayer implements Runnable {
 		switch(data[0]) {
 		case "CHALLENGE":
 			int n = JOptionPane.showConfirmDialog(
-                    null, data[1] + " wants to challenge you.", "Challenge",
+                    null, data[1] + " wants to challenge you. Do you accept?", "Challenge",
                     JOptionPane.YES_NO_OPTION);
 			if(n==0) {
 				opponent = new User(data[1], packet.getPort(), packet.getAddress().toString().replace("/",""));
