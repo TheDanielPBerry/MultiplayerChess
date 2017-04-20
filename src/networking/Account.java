@@ -5,7 +5,14 @@ import java.awt.Container;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,26 +28,38 @@ public class Account extends JFrame implements ActionListener {
 	
 	
 	private static final long serialVersionUID = 5744889896837508130L;
-	private JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
-	private JButton buttons[] = {new JButton("Login"),new JButton("Register")};
+	private static JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
+	private static JButton buttons[] = {new JButton("Login"),new JButton("Register")};
 	public static String Ip;
+	public static Socket socket;
+	public static BufferedReader input;
+	public static DataOutputStream output;
 	
 	public static void main(String args[]){
 	    do {
 	    	Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
-	    	if(Ip != null) {
-		    	String response [] = Server.SendMessage("VERIFY||").split("\\|\\|");
-	    		if(response[0].equals("CONNECTION_PROCEED")) {
-	    			new Account();
-	    			break;
-	    		}else {
-	    			JOptionPane.showMessageDialog(null, "Not a valid chess server");
-	    		}
-	    	}
+			try {
+		    	if(Ip != null) {
+					socket = new Socket(Ip, Server.PORT);
+					input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					output = new DataOutputStream(socket.getOutputStream());
+			    	String response [] = Server.SendMessage(input, output, "VERIFY||").split("\\|\\|");
+		    		if(response[0].equals("CONNECTION_PROCEED")) {
+		    			new Account();
+		    			break;
+		    		}else {
+		    			JOptionPane.showMessageDialog(null, "Not a valid chess server");
+		    		}
+		    	}
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 	    } while(Ip!=null);
 	}
 	
-	public Account(){
+	public Account() {
 		setVisible(true);
 		setTitle("Account login");
 		setResizable(false);
@@ -115,20 +134,18 @@ public class Account extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		//Register
 		if(((JButton)e.getSource())==buttons[1]) {
-			String response = Server.SendMessage("REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText()+"||");
+			String response = Server.SendMessage(input, output, "REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText()+"||");
 			if(response.equals("OK")) {
 				JOptionPane.showMessageDialog(null, "Account Created Successfully");
 			} else {
 				JOptionPane.showMessageDialog(null, response);
 			}
 		}
-		
 		//Login
 		else if(((JButton)e.getSource())==buttons[0]) {
-			String response[]= Server.SendMessage("LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||").split("\\|\\|");
+			String response[]= Server.SendMessage(input, output, "LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||").split("\\|\\|");
 			if(response[0]!= null && response[0].equals("OK")) {
 				User user = new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis()));
-				user.Port = Integer.parseInt(response[1]);
 				login(user);
 			} else {
 				JOptionPane.showMessageDialog(null, response);
@@ -138,6 +155,7 @@ public class Account extends JFrame implements ActionListener {
 	
 	public void login(User user) {
 		setVisible(false);
-		new Multiplayer(user);
+		dispose();
+		new Multiplayer(user, Account.socket);
 	}
 }

@@ -1,12 +1,14 @@
 package networking;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 
 public class Server implements Runnable {
@@ -15,14 +17,17 @@ public class Server implements Runnable {
 	/**A collection of all the players online*/
 	private static ArrayList<User> users = new ArrayList<User>();
 	
-	private static final byte threadPoolSize = 1;
+	/**An instance of a connection between a client.*/
+	private Socket socket;
+	private BufferedReader input;
+	private DataOutputStream output;
 	
 	public static void main(String[] args) {
-        ServerSocket socket;
+        ServerSocket server;
 		try {
-			socket = new ServerSocket(80);
-			for(byte i=0; i<threadPoolSize; i++) {
-				Thread t = new Thread(new Server(socket));
+			server = new ServerSocket(PORT);
+			while(true) {
+				Thread t = new Thread(new Server(server.accept()));
 				t.start();
 			}
 		} catch (IOException e) {
@@ -30,39 +35,35 @@ public class Server implements Runnable {
 		}
 	}
 	
-	public Server(ServerSocket s) {
-	}
-	
-	public void run() {
-		while(true) {
-			try {
-				DatagramSocket socket = new DatagramSocket(PORT);
-	            byte[] inBuffer = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-	            socket.receive(inPacket);
-	            inBuffer = inPacket.getData();
-	            
-	            InetAddress returnAddress = inPacket.getAddress();
-	            String inputData = Server.bufferToString(inBuffer);
-	            System.out.println("> " + inputData);
-	            String outputData = Server.ParseCommand(inputData, inPacket);
-	            System.out.println("< " + outputData);
-	            
-	            byte[] outBuffer = outputData.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
-	            socket.send(outPacket);
-	            socket.close();
-	            
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+	public Server(Socket s) {
+		socket = s;
+		try {
+			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			output = new DataOutputStream(socket.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	
+	public void run() {
+		try {
+			String command = "";
+			while(!command.contains("LOGOUT")) {
+					command = input.readLine();
+		            System.out.println("> " + command);
+					String response = Server.ParseCommand(command, socket.getRemoteSocketAddress().toString(), socket.getPort());
+		            System.out.println("< " + response);
+					output.writeBytes(response);
+			}
+			input.close();
+			output.close();
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
-	
-	
-	public static String ParseCommand(String command, DatagramPacket packet) {
+	public static String ParseCommand(String command, String address, int port) {
 		String data[] = command.split("\\|\\|");
 		switch(data[0]) {
 		case "REGISTER":
@@ -76,10 +77,8 @@ public class Server implements Runnable {
 			user = User.GetUser(data[1]);
 			if(user!=null) {
 				if(PasswordHash.Compare(user.PasswordHash, data[2])) {
-					user.Port = packet.getPort();
-					user.Ip = packet.getAddress();
 					users.add(user);
-					return "OK||" + user.Port + "||";
+					return "OK||" + port + "||";
 				} else {
 					return "Password Incorrect";
 				}
@@ -102,7 +101,9 @@ public class Server implements Runnable {
 				}
 			}
 			if(user!=null) {
-				return user.Username + "||" + user.Port + "||" + user.Ip.toString().replace("/","") + "||";
+				return user.Username + "||" + 
+						user.socket.getPort() + "||" + 
+						user.socket.getRemoteSocketAddress().toString() + "||";
 			}
 			return "No Valid User";
 		case "LOGOUT":
@@ -123,25 +124,11 @@ public class Server implements Runnable {
 		return "Unknown Command Error";
 	}
 	
-	
-	public static String SendMessage(String data) {
+	public static String SendMessage(BufferedReader input, DataOutputStream output, String data) {
 		try {
-			DatagramSocket socket = new DatagramSocket();
-	        while (true) {
-	            InetAddress destAddress = InetAddress.getByName(Account.Ip);
-	            byte outBuffer[] = data.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, PORT);
-	            socket.send(outPacket);
-	            
-	            
-	            byte inBuffer[] = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-	            socket.receive(inPacket);
-	            String back = bufferToString(inPacket.getData());
-	            
-	            socket.close();
-	            return back;
-	        }
+			output.writeBytes(data);
+			String response = input.readLine();
+			return response;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

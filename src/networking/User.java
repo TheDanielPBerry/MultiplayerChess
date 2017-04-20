@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -15,8 +15,7 @@ public class User {
 	
 	public String Username;
 	public String PasswordHash;
-	public InetAddress Ip;
-	public int Port;
+	public Socket socket;
 	public Timestamp Created;
 
 	public User(String username, String password, String datetime) {
@@ -36,12 +35,17 @@ public class User {
 	}
 	public User(String uname, int port, String ip) {
 		Username = uname;
-		Port = port;
 		try {
-			Ip = InetAddress.getByName(ip);
+			socket = new Socket(ip, port);
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
+	}
+	public User(String uname, Socket s) {
+		Username = uname;
+		socket = s;
 	}
 	
 	

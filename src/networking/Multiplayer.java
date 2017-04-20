@@ -1,24 +1,28 @@
 package networking;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+
 import javax.swing.JOptionPane;
 
 public class Multiplayer implements Runnable {
 	
 	private User user;
 	private User opponent;
+	private Socket socket;
+	private ServerSocket server;
 	
-	public Multiplayer(User u) {
+	public Multiplayer(User u, Socket s) {
 		user = u;
+		socket = s;
 		
 		Thread t = new Thread(this);
 		t.start();
 		boolean lobby = true;
 		do {
-			String onlinePlayers = Server.SendMessage("GET_LIST||"+user.Username+"||");
+			String onlinePlayers = Server.SendMessage(socket, "GET_LIST||"+user.Username+"||");
 			String[] players = onlinePlayers.split("\\|\\|");
 			String opponentName = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players, null);
 			if(opponentName==null) {
@@ -39,7 +43,7 @@ public class Multiplayer implements Runnable {
 	
 	
 	public void logout() {
-		String response = Server.SendMessage("LOGOUT||"+user.Username+"||");
+		String response = Server.SendMessage(socket, "LOGOUT||"+user.Username+"||");
 		if(response.equals("OK")) {
 			JOptionPane.showMessageDialog(null, "Logout Successful");
 			System.exit(0);
@@ -53,9 +57,9 @@ public class Multiplayer implements Runnable {
                 null, "Do you want to challenge " + opponentName, "Challenge",
                 JOptionPane.YES_NO_OPTION);
 		if(n==0) {
-			String response[] = Server.SendMessage("GET_USER||" + opponentName + "||").split("\\|\\|");
+			String response[] = Server.SendMessage(socket, "GET_USER||" + opponentName + "||").split("\\|\\|");
 			opponent = new User(response[0],Integer.parseInt(response[1]),response[2]);
-			String challengeResponse = SendMessage("CHALLENGE||"+user.Username+"||"+opponentName+"||");
+			String challengeResponse = Server.SendMessage(opponent.socket, "CHALLENGE||"+user.Username+"||"+opponentName+"||");
 			if(challengeResponse!=null && challengeResponse.equals("OK")) {
 				return true;
 			}else {
@@ -66,34 +70,8 @@ public class Multiplayer implements Runnable {
 	}
 	
 	
-	public String SendMessage(String data) {
-		if(opponent!=null) {
-			try {
-				DatagramSocket socket = new DatagramSocket();
-		        while (true) {
-		            InetAddress destAddress = opponent.Ip;
-		            byte outBuffer[] = data.getBytes();
-		            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, opponent.Port);
-		            socket.send(outPacket);
-		            
-		            
-		            byte inBuffer[] = new byte[512];
-		            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-		            socket.receive(inPacket);
-		            String back = Server.bufferToString(inPacket.getData());
-		            
-		            socket.close();
-		            return back;
-		        }
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-        return null;
-	}
 	
-	
-	public String parseCommand(String command, DatagramPacket packet) {
+	public String parseCommand(String command, Socket connection) {
 		String data[] = command.split("\\|\\|");
 		switch(data[0]) {
 		case "CHALLENGE":
@@ -101,7 +79,7 @@ public class Multiplayer implements Runnable {
                     null, data[1] + " wants to challenge you. Do you accept?", "Challenge",
                     JOptionPane.YES_NO_OPTION);
 			if(n==0) {
-				opponent = new User(data[1], packet.getPort(), packet.getAddress().toString().replace("/",""));
+				opponent = new User(data[1], connection);
 				return "OK";
 			}
 			return "Challenge Declined!";
@@ -115,29 +93,22 @@ public class Multiplayer implements Runnable {
 		listen();
 	}
 	public void listen() {
-		try {
-			DatagramSocket socket = new DatagramSocket(user.Port);
-            byte[] inBuffer = new byte[512];
-            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-            socket.receive(inPacket);
-            inBuffer = inPacket.getData();
-            
-            InetAddress returnAddress = inPacket.getAddress();
-            String inputData = Server.bufferToString(inBuffer);
-            String outputData = parseCommand(inputData, inPacket);
-            
-            byte[] outBuffer = outputData.getBytes();
-            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, returnAddress, inPacket.getPort());
-            socket.send(outPacket);
-            
-            if(inputData.contains("CHALLENGE") && outputData.contains("OK")) {
-            	new Chess(user, opponent, false);
-                socket.close();
-            }else {
-            	listen();
-            }
-		} catch (IOException e) {
-			e.printStackTrace();
+		while(true) {
+			try {
+				Socket connection = server.accept();
+	            Scanner input = new Scanner(connection.getInputStream());
+	            String command = input.nextLine();
+	            input.close();
+	            String response = parseCommand(command, connection);
+	            
+	            if(command.contains("CHALLENGE") && response.contains("OK")) {
+	            	new Chess(user, opponent, false);
+	                socket.close();
+	                break;
+	            }
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	
