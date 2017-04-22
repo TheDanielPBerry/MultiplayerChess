@@ -9,10 +9,10 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
-import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,23 +28,32 @@ public class Account extends JFrame implements ActionListener {
 	
 	
 	private static final long serialVersionUID = 5744889896837508130L;
+	/**A collection of JTextfields for data input.*/
 	private static JTextField textFields[] = {new JTextField(15),new JPasswordField(15),new JTextField(15),new JPasswordField(15)};
+	/**A collection of JButtons for screen input.*/
 	private static JButton buttons[] = {new JButton("Login"),new JButton("Register")};
+	/**An input ip address that is the destination of a running chess server.*/
 	public static String Ip;
+	/**An open socket with the chess server. The connection stays open until logout.*/
 	public static Socket socket;
 	public static BufferedReader input;
 	public static DataOutputStream output;
+	public static ServerSocket server;
 	
 	public static void main(String args[]){
 	    do {
+	    	//Get the server ip.
 	    	Ip = JOptionPane.showInputDialog(null, "Input a chess server ip to connect to.");
 			try {
 		    	if(Ip != null) {
 					socket = new Socket(Ip, Server.PORT);
+					//Get the data streams to and from the server.
 					input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 					output = new DataOutputStream(socket.getOutputStream());
 			    	String response [] = Server.SendMessage(input, output, "VERIFY||").split("\\|\\|");
-		    		if(response[0].equals("CONNECTION_PROCEED")) {
+					//If valid proceed to login prompt
+			    	if(response[0].equals("CONNECTION_PROCEED")) {
+		    			server = new ServerSocket(0);
 		    			new Account();
 		    			break;
 		    		}else {
@@ -134,21 +143,40 @@ public class Account extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
 		//Register
 		if(((JButton)e.getSource())==buttons[1]) {
-			String response = Server.SendMessage(input, output, "REGISTER||" + textFields[2].getText()+"||"+textFields[3].getText()+"||");
-			if(response.equals("OK")) {
-				JOptionPane.showMessageDialog(null, "Account Created Successfully");
+			String username = textFields[2].getText();
+			String passphrase = textFields[3].getText();
+			if(!username.isEmpty() && !passphrase.isEmpty()) {
+				String response = Server.SendMessage(
+						Account.input, 
+						Account.output, 
+						"REGISTER||"+username+"||"+passphrase+"||");
+				if(response.equals("OK")) {
+					JOptionPane.showMessageDialog(null, "Account Created Successfully");
+				} else {
+					JOptionPane.showMessageDialog(null, response);
+				}
 			} else {
-				JOptionPane.showMessageDialog(null, response);
+				JOptionPane.showMessageDialog(null, "Username and Passphrase cannot be empty.");
 			}
 		}
 		//Login
 		else if(((JButton)e.getSource())==buttons[0]) {
-			String response[]= Server.SendMessage(input, output, "LOGIN||" + textFields[0].getText()+"||"+textFields[1].getText()+"||").split("\\|\\|");
-			if(response[0]!= null && response[0].equals("OK")) {
-				User user = new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis()));
-				login(user);
+			String username = textFields[0].getText();
+			String passphrase = textFields[1].getText();
+			if(!username.isEmpty() && !passphrase.isEmpty()) {
+				String response[]=Server.SendMessage(
+						Account.input, 
+						Account.output, 
+						"LOGIN||"+username+"||"+passphrase+"||"+server.getLocalPort()+"||").split("\\|\\|");
+				//Validate a successful login
+				if(response[0]!= null && response[0].equals("OK")) {
+					User user = new User(textFields[0].getText(),textFields[1].getText(), new Timestamp(System.currentTimeMillis()));
+					login(user);
+				} else {
+					JOptionPane.showMessageDialog(null, response);
+				}
 			} else {
-				JOptionPane.showMessageDialog(null, response);
+				JOptionPane.showMessageDialog(null, "Username and Passphrase cannot be empty.");
 			}
 		}
 	}
@@ -156,6 +184,6 @@ public class Account extends JFrame implements ActionListener {
 	public void login(User user) {
 		setVisible(false);
 		dispose();
-		new Multiplayer(user, Account.socket);
+		new Multiplayer(user, Account.server);
 	}
 }

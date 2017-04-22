@@ -2,10 +2,12 @@ package networking;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.sql.Timestamp;
@@ -15,7 +17,11 @@ public class User {
 	
 	public String Username;
 	public String PasswordHash;
-	public Socket socket;
+	public Socket Socket;
+	public int ServerPort;
+	public String IpAddress;
+	public BufferedReader input;
+	public DataOutputStream output;
 	public Timestamp Created;
 
 	public User(String username, String password, String datetime) {
@@ -35,8 +41,12 @@ public class User {
 	}
 	public User(String uname, int port, String ip) {
 		Username = uname;
+		IpAddress=ip;
 		try {
-			socket = new Socket(ip, port);
+			Socket = new Socket(ip, port);
+			//Initialize the data streams
+			input = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
+			output = new DataOutputStream(Socket.getOutputStream());
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -45,7 +55,15 @@ public class User {
 	}
 	public User(String uname, Socket s) {
 		Username = uname;
-		socket = s;
+		Socket = s;
+		IpAddress = Socket.getLocalAddress().toString().replace("/","");
+		//Initialize the data streams
+		try {
+			input = new BufferedReader(new InputStreamReader(Socket.getInputStream()));
+			output = new DataOutputStream(Socket.getOutputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -100,4 +118,10 @@ public class User {
         return users;
     }
     
+    public static String IpTranslation(String address) {
+    	if(address.toUpperCase().equals("LOCALHOST")) {
+    		return "127.0.0.1";
+    	}
+    	return address;
+    }
 }

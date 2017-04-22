@@ -1,9 +1,11 @@
 package networking;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
 
 import javax.swing.JOptionPane;
 
@@ -11,18 +13,18 @@ public class Multiplayer implements Runnable {
 	
 	private User user;
 	private User opponent;
-	private Socket socket;
 	private ServerSocket server;
 	
-	public Multiplayer(User u, Socket s) {
+	public Multiplayer(User u, ServerSocket ss) {
 		user = u;
-		socket = s;
+		server = ss;
 		
 		Thread t = new Thread(this);
 		t.start();
+		
 		boolean lobby = true;
 		do {
-			String onlinePlayers = Server.SendMessage(socket, "GET_LIST||"+user.Username+"||");
+			String onlinePlayers = Server.SendMessage(Account.input, Account.output, "GET_LIST||"+user.Username+"||");
 			String[] players = onlinePlayers.split("\\|\\|");
 			String opponentName = (String) JOptionPane.showInputDialog(null, "Select an Opponent to Challenge", user.Username, JOptionPane.QUESTION_MESSAGE, null, players, null);
 			if(opponentName==null) {
@@ -43,7 +45,7 @@ public class Multiplayer implements Runnable {
 	
 	
 	public void logout() {
-		String response = Server.SendMessage(socket, "LOGOUT||"+user.Username+"||");
+		String response = Server.SendMessage(Account.input, Account.output, "LOGOUT||"+user.Username+"||");
 		if(response.equals("OK")) {
 			JOptionPane.showMessageDialog(null, "Logout Successful");
 			System.exit(0);
@@ -57,9 +59,12 @@ public class Multiplayer implements Runnable {
                 null, "Do you want to challenge " + opponentName, "Challenge",
                 JOptionPane.YES_NO_OPTION);
 		if(n==0) {
-			String response[] = Server.SendMessage(socket, "GET_USER||" + opponentName + "||").split("\\|\\|");
+			String response[] = Server.SendMessage(Account.input, Account.output, "GET_USER||" + opponentName + "||").split("\\|\\|");
 			opponent = new User(response[0],Integer.parseInt(response[1]),response[2]);
-			String challengeResponse = Server.SendMessage(opponent.socket, "CHALLENGE||"+user.Username+"||"+opponentName+"||");
+			user.Socket = opponent.Socket;
+			user.input = opponent.input;
+			user.output = opponent.output;
+			String challengeResponse = Server.SendMessage(opponent.input, opponent.output, "CHALLENGE||"+user.Username+"||"+opponentName+"||");
 			if(challengeResponse!=null && challengeResponse.equals("OK")) {
 				return true;
 			}else {
@@ -76,7 +81,7 @@ public class Multiplayer implements Runnable {
 		switch(data[0]) {
 		case "CHALLENGE":
 			int n = JOptionPane.showConfirmDialog(
-                    null, data[1] + " wants to challenge you. Do you accept?", "Challenge",
+                    null, data[1] + " wants to challenge you.\nDo you accept?", "Challenge",
                     JOptionPane.YES_NO_OPTION);
 			if(n==0) {
 				opponent = new User(data[1], connection);
@@ -96,14 +101,16 @@ public class Multiplayer implements Runnable {
 		while(true) {
 			try {
 				Socket connection = server.accept();
-	            Scanner input = new Scanner(connection.getInputStream());
-	            String command = input.nextLine();
-	            input.close();
+				user.Socket = connection;
+				user.input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+				user.output = new DataOutputStream(connection.getOutputStream());
+	            String command = user.input.readLine();
 	            String response = parseCommand(command, connection);
+	            user.output.writeBytes(response + "\n");
 	            
 	            if(command.contains("CHALLENGE") && response.contains("OK")) {
+	            	user.Socket = connection;
 	            	new Chess(user, opponent, false);
-	                socket.close();
 	                break;
 	            }
 			} catch (IOException e) {

@@ -16,9 +16,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
@@ -59,8 +58,18 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	
 	public static void main(String[] args) {
-		new Chess(new User("Jack",50003,"localhost"), new User("Jill",50002,"localhost"), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		new Chess(new User("Jill",50002,"localhost"), new User("Jack",50003,"localhost"), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		ServerSocket player1;
+		Socket socket2 = null;
+		Socket socket1 = null;
+		try {
+			player1 = new ServerSocket(0);
+			socket2 = new Socket("localhost", player1.getLocalPort());
+			socket1 = player1.accept();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		new Chess(new User("Jack",socket1), new User("Jill",socket2), true).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		new Chess(new User("Jill",socket2), new User("Jack",socket1), false).frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public Chess(User p1, User p2, boolean wp) {
@@ -198,7 +207,6 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				refresh=0;
 			}refresh++;
 			
-			
 			try {
 				Thread.sleep(1);
 			}catch(Exception e) {
@@ -206,12 +214,22 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 			}
 		}
 		SendMessage("CLOSE||");
+        try {
+			player1.Socket.close();
+	        player1.input.close();
+	        player1.output.close();
+	        player2.Socket.close();
+	        player2.input.close();
+	        player2.output.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		grave.setVisible(false);
 		chat.setVisible(false);
 		grave.dispose();
 		chat.dispose();
 		frame.dispose();
-		new Multiplayer(player1);
+		new Multiplayer(player1, Account.server);
 	}
 	
 	public void movePiece(byte x, byte y) {
@@ -313,13 +331,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	
 	public void SendMessage(String data) {
 		try {
-			DatagramSocket socket = new DatagramSocket();
-            player1.Port = socket.getPort();
-            InetAddress destAddress = player2.Ip;
-            byte outBuffer[] = data.getBytes();
-            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
-            socket.send(outPacket);
-			socket.close();
+			player1.output.writeBytes(data + "\n");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -339,100 +351,39 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				WaitMove();
 			}else {
 				MoveSend(data);
+				WaitMove();
 			}
 		}
 		
 		public void MoveSend(String data) {
+			for(String s : transcript) {
+				SendMessage(s);
+			}
+			transcript.clear();
 			try {
-				
-				for(String s : transcript) {
-					SendMessage(s);
-				}
-				transcript.clear();
-				DatagramSocket socket = new DatagramSocket();
-	            InetAddress destAddress = player2.Ip;
-	            byte outBuffer[] = data.getBytes();
-	            DatagramPacket outPacket = new DatagramPacket(outBuffer, outBuffer.length, destAddress, player2.Port);
-	            player1.Port = socket.getPort();
-	            socket.send(outPacket);
-				whitePeopleFirst = !whitePeopleFirst;
-				make();
-				frame.revalidate();
-				WaitMove(socket);
+				player1.output.writeBytes(data + "\n");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			whitePeopleFirst = !whitePeopleFirst;
+			make();
+			frame.revalidate();
 		}
 
-		public void WaitMove(DatagramSocket socket) {
-			try {
-	            byte[] inBuffer = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-	            socket.receive(inPacket);
-	            inBuffer = inPacket.getData();
-	            
-	            player2.Port = inPacket.getPort();
-	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
-	            switch(inputData[0]) {
-        		case "CLOSE":
-		            socket.close();
-	            	frame.setVisible(false);
-	            	break;
-            	case "MESSAGE":
-    				JTextPane message = new JTextPane();
-    				SimpleAttributeSet attribs = new SimpleAttributeSet();
-    				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
-    				message.setParagraphAttributes(attribs, true);
-    				message.setText(inputData[1]);
-    				message.setEditable(false);
-					message.setBackground(Color.GRAY);
-	            	messages.add(message);
-	            	messages.revalidate();
-	            	messages.repaint();
-	            	WaitMove(socket);
-	            	break;
-	            default:
-		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
-					availableMoves = board[selectedCell.x][selectedCell.y].possibleMoves(selectedCell, board);
-		            movePiece(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3]));
-		            
-    				message = new JTextPane();
-    				attribs = new SimpleAttributeSet();
-    				StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_RIGHT);
-    				message.setParagraphAttributes(attribs, true);
-    				message.setText(PositionName(Byte.parseByte(inputData[0]),Byte.parseByte(inputData[1])) +
-    						" moves to " +
-    						PositionName(Byte.parseByte(inputData[2]), Byte.parseByte(inputData[3])));
-    				message.setEditable(false);
-					message.setBackground(Color.GRAY);
-	            	messages.add(message);
-	            	messages.revalidate();
-	            	messages.repaint();
-	            	
-		            socket.close();
-					whitePeopleFirst = !whitePeopleFirst;
-					make();
-					frame.revalidate();
-	            }
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		
 		
 		public void WaitMove() {
 			try {
-				DatagramSocket socket = new DatagramSocket(player1.Port);
-	            byte[] inBuffer = new byte[512];
-	            DatagramPacket inPacket = new DatagramPacket(inBuffer, inBuffer.length);
-	            socket.receive(inPacket);
-	            inBuffer = inPacket.getData();
-	            
-	            player2.Port = inPacket.getPort();
-	            String inputData[] = Server.bufferToString(inBuffer).split("\\|\\|");
+				String data = player1.input.readLine();
+	            String inputData[] = data.split("\\|\\|");
 	            switch(inputData[0]) {
         		case "CLOSE":
-		            socket.close();
+		            player1.Socket.close();
+		            player1.input.close();
+		            player1.output.close();
+		            player2.Socket.close();
+		            player2.input.close();
+		            player2.output.close();
 	            	frame.setVisible(false);
 	            	break;
             	case "MESSAGE":
@@ -446,7 +397,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	messages.add(message);
 	            	messages.revalidate();
 	            	messages.repaint();
-	            	WaitMove(socket);
+	            	WaitMove();
 	            	break;
 	            default:
 		            selectedCell = new Point(Integer.parseInt(inputData[0]),Integer.parseInt(inputData[1]));
@@ -466,7 +417,6 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	messages.revalidate();
 	            	messages.repaint();
 	            	
-		            socket.close();
 					whitePeopleFirst = !whitePeopleFirst;
 					make();
 					frame.revalidate();
