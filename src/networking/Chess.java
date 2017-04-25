@@ -48,8 +48,8 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	private Cell board[][];
 	private boolean availableMoves[][] = new boolean[8][8];
 	private Point selectedCell = new Point(8,8);
-	private boolean whitePeopleFirst = true;
-	private boolean whitePrivilege;
+	private boolean yourTurn = true;
+	private boolean isWhite;
 	private User player1;
 	private User player2;
 	private ArrayList<Cell> whiteGY = new ArrayList<Cell>();
@@ -89,7 +89,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		g3 = buffer.getGraphics();
 		player1 = p1;
 		player2 = p2;
-		whitePrivilege = wp;
+		isWhite = wp;
 		resetBoard();
 		Graveyard();
 		Chat();
@@ -122,7 +122,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 		bottom.add(BGYLabel);
 		BGYLabel.setAlignmentX(CENTER_ALIGNMENT);
 		BGY = new JPanel(new GridLayout(4,4));
-		if(whitePrivilege) {
+		if(isWhite) {
 			top.add(WGY);
 			bottom.add(BGY);
 		} else {
@@ -155,7 +155,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 				messages.add(message);
             	messages.revalidate();
             	messages.repaint();
-            	if(whitePrivilege!=whitePeopleFirst) {
+            	if(isWhite!=yourTurn) {
             		transcript.add("MESSAGE||"+inputChat.getText()+"||");
             	} else {
             		SendMessage("MESSAGE||"+inputChat.getText()+"||");
@@ -259,7 +259,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 						grave.repaint();
 					}
 					board[x][y] = temp;
-					if(whitePrivilege==whitePeopleFirst) {
+					if(isWhite==yourTurn) {
 						JTextPane message = new JTextPane();
 						SimpleAttributeSet attribs = new SimpleAttributeSet();
 						StyleConstants.setAlignment(attribs, StyleConstants.ALIGN_LEFT);
@@ -283,15 +283,15 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	}
 	
 	public void mousePressed(MouseEvent e) {
-		if(e.getButton()==1 && whitePrivilege==whitePeopleFirst) {
+		if(e.getButton()==1 && isWhite==yourTurn) {
 			byte x = (byte) (((e.getX()+0.0)/frame.getWidth())*8), y = (byte) (((e.getY()+0.0)/frame.getWidth())*8);
 			if(selectedCell.x==8) {
-				if(board[x][y].whitePiece==whitePeopleFirst) {
+				if(board[x][y].whitePiece==yourTurn) {
 					selectedCell = new Point(x,y);
 					availableMoves = board[x][y].possibleMoves(selectedCell, board);
 				}
 			}
-			else if(board[selectedCell.x][selectedCell.y].whitePiece==whitePeopleFirst) {
+			else if(board[selectedCell.x][selectedCell.y].whitePiece==yourTurn) {
 				movePiece(x,y);
 			}
 		}
@@ -365,7 +365,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			whitePeopleFirst = !whitePeopleFirst;
+			yourTurn = !yourTurn;
 			make();
 			frame.revalidate();
 		}
@@ -417,7 +417,7 @@ public class Chess extends JPanel implements Runnable, MouseListener {
 	            	messages.revalidate();
 	            	messages.repaint();
 	            	
-					whitePeopleFirst = !whitePeopleFirst;
+					yourTurn = !yourTurn;
 					make();
 					frame.revalidate();
 	            }
